@@ -27,3 +27,9 @@ router.post('/verify-otp' , [
 ] , userController.verifyOTP);
 
 module.exports = router;
+
+
+router.post('/login' , [
+    body('email').isEmail().withMessage('Invalid email address'),
+    body('password').notEmpty().withMessage('Password is required')
+] , userController.login);

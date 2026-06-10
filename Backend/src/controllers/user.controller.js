@@ -9,6 +9,10 @@ const { generateAuthToken } = require("../utils/auth");
 
 const { validationResult } = require("express-validator");
 
+const bcrypt = require("bcrypt");
+
+// User Registration Endpoint
+
 module.exports.register = async (req, res) => {
   const errors = validationResult(req);
 
@@ -76,10 +80,10 @@ module.exports.register = async (req, res) => {
     );
 
     await transport.sendMail({
-  from: `"Hyperlocal" <${process.env.EMAIL_USER}>`,
-  to: email,
-  subject: "Verify Your Email Address",
-  html: `
+      from: `"Hyperlocal" <${process.env.EMAIL_USER}>`,
+      to: email,
+      subject: "Verify Your Email Address",
+      html: `
     <div style="
       font-family: Arial, sans-serif;
       background-color: #f4f4f4;
@@ -163,7 +167,7 @@ module.exports.register = async (req, res) => {
       </div>
     </div>
   `,
-});
+    });
 
     return res.status(201).json({
       message: "Registration successful. Check your email for OTP.",
@@ -177,12 +181,14 @@ module.exports.register = async (req, res) => {
   }
 };
 
-module.exports.verifyOTP = async (req, res) => {
-    try {
-        const { email, otp } = req.body;
+// OTP Verification Endpoint
 
-        const result = await pool.query(
-            `
+module.exports.verifyOTP = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const result = await pool.query(
+      `
             SELECT *
             FROM otp_verifications
             WHERE email = $1
@@ -191,40 +197,80 @@ module.exports.verifyOTP = async (req, res) => {
             ORDER BY created_at DESC
             LIMIT 1
             `,
-            [email, otp]
-        );
+      [email, otp],
+    );
 
-        if (result.rows.length === 0) {
-            return res.status(400).json({
-                message: 'Invalid OTP'
-            });
-        }
+    if (result.rows.length === 0) {
+      return res.status(400).json({
+        message: "Invalid OTP",
+      });
+    }
 
-        const record = result.rows[0];
+    const record = result.rows[0];
 
-        if (new Date() > new Date(record.expires_at)) {
-            return res.status(400).json({
-                message: 'OTP has expired'
-            });
-        }
+    if (new Date() > new Date(record.expires_at)) {
+      return res.status(400).json({
+        message: "OTP has expired",
+      });
+    }
 
-        await pool.query(
-            `
+    await pool.query(
+      `
             UPDATE otp_verifications
             SET is_used = TRUE
             WHERE id = $1
             `,
-            [record.id]
-        );
+      [record.id],
+    );
 
-        await pool.query(
-            `
+    await pool.query(
+      `
             UPDATE users
             SET is_verified = TRUE
             WHERE email = $1
             `,
-            [email]
-        );
+      [email],
+    );
+
+    const userResult = await pool.query(
+      `
+            SELECT *
+            FROM users
+            WHERE email = $1
+            `,
+      [email],
+    );
+
+    const user = userResult.rows[0];
+
+    const token = generateAuthToken(user);
+
+    return res.status(200).json({
+      message: "Email verified successfully",
+      token,
+    });
+  } catch (err) {
+    console.error(err);
+
+    return res.status(500).json({
+      message: "Server Error",
+    });
+  }
+};
+
+// User Login Endpoint
+
+module.exports.login = async (req, res) => {
+    const errors = validationResult(req);
+
+    if (!errors.isEmpty()) {
+        return res.status(400).json({
+            errors: errors.array()
+        });
+    }
+
+    try {
+        const { email, password } = req.body;
 
         const userResult = await pool.query(
             `
@@ -235,13 +281,41 @@ module.exports.verifyOTP = async (req, res) => {
             [email]
         );
 
+        if (userResult.rows.length === 0) {
+            return res.status(400).json({
+                message: 'Invalid email or password'
+            });
+        }
+
         const user = userResult.rows[0];
+
+        if (!user.is_verified) {
+            return res.status(400).json({
+                message: 'Please verify your email first'
+            });
+        }
+
+        const isMatch = await bcrypt.compare(
+            password,
+            user.password_hash
+        );
+
+        if (!isMatch) {
+            return res.status(400).json({
+                message: 'Invalid email or password'
+            });
+        }
 
         const token = generateAuthToken(user);
 
         return res.status(200).json({
-            message: 'Email verified successfully',
-            token
+            message: 'Login successful',
+            token,
+            user: {
+                id: user.id,
+                name: user.name,
+                email: user.email
+            }
         });
 
     } catch (err) {
