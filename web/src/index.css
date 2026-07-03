@@ -1,1 +1,16 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Warm editorial base — soft stone neutrals, Inter font,
+   thin warm scrollbar, accessible focus rings */
+
+@layer components {
+  .card      { @apply bg-white rounded-xl border border-stone-200 shadow-card; }
+  .btn-primary   { @apply bg-primary-600 hover:bg-primary-700 text-white ... }
+  .btn-secondary { @apply bg-white border border-stone-200 text-stone-700 ... }
+  .input     { @apply border border-stone-200 rounded-lg focus:ring-primary-500 ... }
+  .badge-*   { /* blue, green, amber, red, stone variants */ }
+  .skeleton  { @apply bg-stone-200 rounded animate-pulse; }
+  /* post type colours, emergency banner, avatar, divider */
+}
