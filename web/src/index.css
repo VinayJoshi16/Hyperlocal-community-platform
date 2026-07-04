@@ -2,15 +2,172 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Warm editorial base — soft stone neutrals, Inter font,
-   thin warm scrollbar, accessible focus rings */
+/* ─── Base styles ──────────────────────────────────────────────────────────── */
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-stone-50 text-stone-700 font-sans text-base;
+    min-height: 100vh;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-stone-800 font-semibold tracking-tight;
+  }
+
+  a {
+    @apply text-primary-600 hover:text-primary-700 transition-colors;
+  }
+
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2 ring-offset-white;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-stone-100;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-stone-300 rounded-full;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-stone-400;
+  }
+}
+
+/* ─── Reusable component classes ───────────────────────────────────────────── */
 
 @layer components {
-  .card      { @apply bg-white rounded-xl border border-stone-200 shadow-card; }
-  .btn-primary   { @apply bg-primary-600 hover:bg-primary-700 text-white ... }
-  .btn-secondary { @apply bg-white border border-stone-200 text-stone-700 ... }
-  .input     { @apply border border-stone-200 rounded-lg focus:ring-primary-500 ... }
-  .badge-*   { /* blue, green, amber, red, stone variants */ }
-  .skeleton  { @apply bg-stone-200 rounded animate-pulse; }
-  /* post type colours, emergency banner, avatar, divider */
+
+  .card {
+    @apply bg-white rounded-xl border border-stone-200 shadow-card;
+  }
+
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-primary-600 hover:bg-primary-700 active:bg-primary-800
+           text-white font-medium text-sm
+           px-4 py-2.5 rounded-lg
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2
+           bg-white hover:bg-stone-50 active:bg-stone-100
+           text-stone-700 font-medium text-sm
+           border border-stone-200
+           px-4 py-2.5 rounded-lg
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2
+           hover:bg-stone-100 active:bg-stone-200
+           text-stone-600 hover:text-stone-800 font-medium text-sm
+           px-3 py-2 rounded-lg
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .btn-danger {
+    @apply inline-flex items-center justify-center gap-2
+           bg-red-600 hover:bg-red-700
+           text-white font-medium text-sm
+           px-4 py-2.5 rounded-lg
+           transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .input {
+    @apply w-full px-3.5 py-2.5
+           bg-white border border-stone-200
+           rounded-lg text-stone-800 text-sm
+           placeholder:text-stone-400
+           focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent
+           transition duration-150
+           disabled:bg-stone-50 disabled:text-stone-400 disabled:cursor-not-allowed;
+  }
+
+  .textarea {
+    @apply input resize-none;
+  }
+
+  .label {
+    @apply block text-sm font-medium text-stone-700 mb-1.5;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1
+           px-2 py-0.5 rounded-full
+           text-xs font-medium;
+  }
+
+  .badge-blue   { @apply badge bg-primary-50 text-primary-700; }
+  .badge-green  { @apply badge bg-green-50 text-green-700; }
+  .badge-amber  { @apply badge bg-amber-50 text-amber-700; }
+  .badge-red    { @apply badge bg-red-50 text-red-600; }
+  .badge-stone  { @apply badge bg-stone-100 text-stone-600; }
+
+  .divider {
+    @apply border-t border-stone-100 my-4;
+  }
+
+  .avatar {
+    @apply rounded-full object-cover bg-stone-200 flex-shrink-0;
+  }
+
+  .skeleton {
+    @apply bg-stone-200 rounded animate-pulse;
+  }
+
+  .emergency-banner {
+    @apply bg-red-600 text-white px-4 py-3 flex items-center gap-3;
+  }
+
+  .type-announcement { @apply badge-stone; }
+  .type-notice       { @apply badge-blue; }
+  .type-event        { @apply badge-green; }
+  .type-lost_found   { @apply badge bg-purple-50 text-purple-700; }
+  .type-business     { @apply badge-amber; }
+  .type-poll         { @apply badge bg-indigo-50 text-indigo-700; }
+  .type-emergency    { @apply badge-red; }
+}
+
+/* ─── Utilities ────────────────────────────────────────────────────────────── */
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
 }
