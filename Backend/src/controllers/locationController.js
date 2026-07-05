@@ -49,6 +49,29 @@ const setUserLocation = asyncHandler(async (req, res) => {
   });
 });
 
+// POST /api/location/resolve-gps
+// Public endpoint to resolve lat/lng coordinates to a hierarchy node.
+const resolveGps = asyncHandler(async (req, res) => {
+  const { lat, lng } = setLocationSchema.parse(req.body);
+  const hierarchy = await locationModel.resolveHierarchyFromPoint(lat, lng);
+
+  if (hierarchy.length === 0) {
+    return fail(
+      res,
+      'Could not resolve your location. Your area may not be mapped yet. Please try selecting manually.',
+      404
+    );
+  }
+
+  return ok(res, {
+    hierarchy: hierarchy.map((l) => ({
+      id: l.id,
+      name: l.name,
+      type: l.type,
+    })),
+  });
+});
+
 // GET /api/location/mine
 // Returns all location levels the current user is enrolled in.
 const getMyLocations = asyncHandler(async (req, res) => {
@@ -145,4 +168,5 @@ module.exports = {
   getChildren,
   searchLocations,
   joinLocation,
+  resolveGps,
 };

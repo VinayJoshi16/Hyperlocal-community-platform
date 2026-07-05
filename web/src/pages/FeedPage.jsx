@@ -1,6 +1,6 @@
 // Main feed page - infinite scroll, type filter pills, create post composer
 
-import { useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { AlertTriangle, X, Loader2 } from 'lucide-react'
 
@@ -22,6 +22,20 @@ export default function FeedPage() {
   const dispatch = useDispatch()
   const bottomRef = useRef(null)
 
+  const [coords, setCoords] = useState(null)
+
+  // Query user coordinates on mount for dynamic distance feed queries
+  useEffect(() => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+        },
+        () => {}
+      )
+    }
+  }, [])
+
   const posts = useSelector(selectPosts)
   const isLoading = useSelector(selectFeedLoading)
   const isLoadingMore = useSelector(selectLoadingMore)
@@ -35,17 +49,17 @@ export default function FeedPage() {
   useEffect(() => {
     dispatch(clearFeed())
     if (activeLocation?.id) {
-      dispatch(fetchFeed({ limit: 20 }))
+      dispatch(fetchFeed({ limit: 20, lat: coords?.lat, lng: coords?.lng }))
     }
-  }, [dispatch, activeLocation?.id])
+  }, [dispatch, activeLocation?.id, coords])
 
   // IntersectionObserver drives infinite scroll
   const handleObserver = useCallback((entries) => {
     const [entry] = entries
     if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading) {
-      dispatch(fetchFeed({ limit: 20, before: nextCursor }))
+      dispatch(fetchFeed({ limit: 20, before: nextCursor, lat: coords?.lat, lng: coords?.lng }))
     }
-  }, [dispatch, hasMore, isLoadingMore, isLoading, nextCursor])
+  }, [dispatch, hasMore, isLoadingMore, isLoading, nextCursor, coords])
 
   useEffect(() => {
     const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 })

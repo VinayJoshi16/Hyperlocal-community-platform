@@ -19,6 +19,7 @@ import toast from 'react-hot-toast'
 
 import { selectUser } from '../redux/slices/AuthSlice'
 import { postsAPI } from '../services/api'
+import { renderBodyWithLinks } from '../utils/linkify'
 
 const TYPE_CONFIG = {
   announcement: { label: 'Update',       className: 'badge-stone' },
@@ -308,17 +309,31 @@ export default function PostDetailPage() {
             </h1>
           )}
           <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-wrap">
-            {post.body}
+            {renderBodyWithLinks(post.body)}
           </p>
-          {post.media_urls && post.media_urls.length > 0 && (
-            <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 max-h-96 bg-stone-50">
-              <img 
-                src={post.media_urls[0]} 
-                alt="Post Attachment" 
-                className="w-full h-full object-cover max-h-96" 
-              />
-            </div>
-          )}
+          {post.media_urls && post.media_urls.length > 0 && (() => {
+            const imgUrl = post.media_urls[0]
+            const isContain = imgUrl.endsWith('#contain')
+            const isSquare = imgUrl.endsWith('#square')
+            
+            return (
+              <div className={`mt-4 overflow-hidden rounded-xl border border-stone-200 bg-stone-50/30 flex justify-center items-center ${
+                isSquare ? 'max-w-sm mx-auto aspect-square' : 'max-h-96 w-full'
+              }`}>
+                <img 
+                  src={imgUrl} 
+                  alt="Post Attachment" 
+                  className={`w-full ${
+                    isContain 
+                      ? 'object-contain max-h-96 bg-stone-100/60 p-1.5' 
+                      : isSquare 
+                      ? 'object-cover aspect-square' 
+                      : 'object-cover aspect-video max-h-96'
+                  }`} 
+                />
+              </div>
+            )
+          })()}
 
           {/* EVENTS Section */}
           {post.type === 'event' && post.event && (

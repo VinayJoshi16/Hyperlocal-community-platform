@@ -27,10 +27,31 @@ const setLocationSchema = z.object({
   lng: z.number().min(-180).max(180),
 });
 
+const registerSchema = z.object({
+  name: z.string().min(2, 'Name must be at least 2 characters').max(80),
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password must be at least 6 characters'),
+  locationId: z.string().uuid('Invalid location UUID'),
+  phone: z.string().optional(),
+});
+
+const verifyRegistrationSchema = z.object({
+  email: z.string().email('Enter a valid email address'),
+  code: z.string().length(6, 'OTP must be 6 digits'),
+});
+
+const loginSchema = z.object({
+  email: z.string().email('Enter a valid email address'),
+  password: z.string().min(6, 'Password is required'),
+});
+
 module.exports = {
   sendOtpSchema,
   verifyOtpSchema,
   refreshTokenSchema,
   updateProfileSchema,
   setLocationSchema,
+  registerSchema,
+  verifyRegistrationSchema,
+  loginSchema,
 };

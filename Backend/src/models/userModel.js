@@ -13,12 +13,23 @@ async function findById(id) {
   return res.rows[0] || null;
 }
 
-async function createUser({ email, name, role = 'user' }) {
+async function createUser({ email, name, role = 'user', isVerified = false, passwordHash = null }) {
   const res = await query(
-    `INSERT INTO users (email, name, role, is_verified)
-     VALUES ($1, $2, $3, true)
+    `INSERT INTO users (email, name, role, is_verified, password_hash)
+     VALUES ($1, $2, $3, $4, $5)
      RETURNING *`,
-    [email.toLowerCase(), name || null, role]
+    [email.toLowerCase(), name || null, role, isVerified, passwordHash]
+  );
+  return res.rows[0];
+}
+
+async function updateUnverifiedUser(userId, { name, passwordHash }) {
+  const res = await query(
+    `UPDATE users
+     SET name = $2, password_hash = $3, updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [userId, name, passwordHash]
   );
   return res.rows[0];
 }
@@ -52,6 +63,7 @@ module.exports = {
   findByEmail,
   findById,
   createUser,
+  updateUnverifiedUser,
   markVerified,
   updateProfile,
   updateFcmToken,

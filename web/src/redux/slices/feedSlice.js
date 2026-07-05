@@ -6,9 +6,9 @@ import toast from 'react-hot-toast'
 
 export const fetchFeed = createAsyncThunk(
   'feed/fetchFeed',
-  async ({ limit = 20, before = null } = {}, { rejectWithValue }) => {
+  async ({ limit = 20, before = null, lat = null, lng = null } = {}, { rejectWithValue }) => {
     try {
-      const res = await postsAPI.getFeed({ limit, before })
+      const res = await postsAPI.getFeed({ limit, before, lat, lng })
       return res.data.data
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to load feed')

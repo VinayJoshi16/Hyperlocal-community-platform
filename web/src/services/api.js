@@ -90,10 +90,12 @@ api.interceptors.response.use(
   }
 )
 
-// ─── Auth API ─────────────────────────────────────────────────────────────────
 export const authAPI = {
   sendOtp:  (email)              => api.post('/auth/send-otp', { email }),
   verifyOtp:(email, code, name)  => api.post('/auth/verify-otp', { email, code, name }),
+  register: (data)               => api.post('/auth/register', data),
+  verifyRegistration: (email, code) => api.post('/auth/verify-registration', { email, code }),
+  login:    (email, password)    => api.post('/auth/login', { email, password }),
   refresh:  (refreshToken)       => api.post('/auth/refresh', { refreshToken }),
   logout:   (refreshToken)       => api.post('/auth/logout', { refreshToken }),
   logoutAll:()                   => api.post('/auth/logout-all'),
@@ -104,6 +106,7 @@ export const authAPI = {
 // ─── Location API ─────────────────────────────────────────────────────────────
 export const locationAPI = {
   setLocation:    (lat, lng) => api.post('/location/set', { lat, lng }),
+  resolveGPS:     (lat, lng) => api.post('/location/resolve-gps', { lat, lng }),
   getMyLocations: ()         => api.get('/location/mine'),
   search:         (q)        => api.get('/location/search', { params: { q } }),
   getChildren:    (id)       => api.get(`/location/${id}/children`),
@@ -116,7 +119,8 @@ export const postsAPI = {
     api.get('/posts/feed', { params: { limit, before } }),
   getPost:          (id)    => api.get(`/posts/${id}`),
   createPost:       (data)  => api.post('/posts', data),
-  uploadImage:      (formData) => api.post('/posts/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  uploadImage:      (formData) => api.post('/posts/upload', formData, { headers: { 'Content-Type': undefined } }),
+  correctGrammar:   (text)  => api.post('/posts/correct-grammar', { text }),
   deletePost:       (id)    => api.delete(`/posts/${id}`),
   togglePin:        (id)    => api.patch(`/posts/${id}/pin`),
   getUserPosts:     (userId, { limit, before } = {}) =>

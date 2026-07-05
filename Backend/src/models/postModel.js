@@ -6,15 +6,15 @@ const { query } = require('../config/db');
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
 
-async function createPost({ authorId, locationId, type, title, body, mediaUrls, isEmergency, isPinned, geoPoint, expiresAt }) {
+async function createPost({ authorId, locationId, type, title, body, mediaUrls, isEmergency, isPinned, geoPoint, expiresAt, spreadRadius }) {
   const res = await query(
     `INSERT INTO posts
-       (author_id, location_id, type, title, body, media_urls, is_emergency, is_pinned, geo_point, expires_at)
+       (author_id, location_id, type, title, body, media_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
        CASE WHEN $9::text IS NOT NULL
             THEN ST_SetSRID(ST_GeomFromGeoJSON($9), 4326)::geography
             ELSE NULL END,
-       $10)
+       $10, $11)
      RETURNING *`,
     [
       authorId,
@@ -27,6 +27,7 @@ async function createPost({ authorId, locationId, type, title, body, mediaUrls, 
       isPinned || false,
       geoPoint ? JSON.stringify(geoPoint) : null,
       expiresAt || null,
+      spreadRadius || null,
     ]
   );
   return res.rows[0];
@@ -108,8 +109,19 @@ async function pinPost(id, isPinned) {
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
 
-async function getFeedForUser(userId, { limit = 20, before } = {}) {
+async function getFeedForUser(userId, { limit = 20, before, lat, lng } = {}) {
   const fields = getPostSelectFields(1);
+  const hasCoords = lat !== undefined && lng !== undefined;
+
+  const userPointSql = hasCoords
+    ? `ST_SetSRID(ST_Point($4, $5), 4326)::geography`
+    : `(SELECT centroid FROM locations WHERE id = (SELECT location_id FROM user_locations WHERE user_id = $1 AND is_primary = true))::geography`;
+
+  const queryParams = [userId, limit, before || null];
+  if (hasCoords) {
+    queryParams.push(lng, lat);
+  }
+
   const res = await query(
     `SELECT ${fields},
             CASE l.type
@@ -123,8 +135,19 @@ async function getFeedForUser(userId, { limit = 20, before } = {}) {
      FROM posts p
      JOIN users u ON u.id = p.author_id
      JOIN locations l ON l.id = p.location_id
-     WHERE p.location_id IN (
-             SELECT location_id FROM user_locations WHERE user_id = $1
+     WHERE (
+             p.location_id IN (
+               SELECT location_id FROM user_locations WHERE user_id = $1
+             )
+             OR (
+               p.spread_radius IS NOT NULL
+               AND p.geo_point IS NOT NULL
+               AND ST_DWithin(
+                 p.geo_point::geography,
+                 ${userPointSql},
+                 p.spread_radius * 1000
+               )
+             )
            )
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
        AND ($3::timestamptz IS NULL OR p.created_at < $3)
@@ -133,7 +156,7 @@ async function getFeedForUser(userId, { limit = 20, before } = {}) {
        p.is_pinned DESC,
        p.created_at DESC
      LIMIT $2`,
-    [userId, limit, before || null]
+    queryParams
   );
   return res.rows;
 }

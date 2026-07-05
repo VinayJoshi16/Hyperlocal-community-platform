@@ -28,13 +28,86 @@ const upload = require('../middleware/uploadMiddleware');
 // All post routes require a valid JWT
 router.use(authMiddleware);
 
-// POST /api/posts/upload - handles single image upload
-router.post('/upload', upload.single('image'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ success: false, message: 'No file uploaded.' });
+// POST /api/posts/upload - handles single image upload with error handling
+router.post('/upload', (req, res, next) => {
+  upload.single('image')(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file uploaded.' });
+    }
+    const fileUrl = `/uploads/${req.file.filename}`;
+    return res.json({ success: true, url: fileUrl });
+  });
+});
+
+// POST /api/posts/correct-grammar - auto-corrects spelling/grammar with fallback
+router.post('/correct-grammar', async (req, res) => {
+  const { text } = req.body;
+  if (!text || !text.trim()) {
+    return res.json({ success: true, correctedText: text });
   }
-  const fileUrl = `/uploads/${req.file.filename}`;
-  return res.json({ success: true, url: fileUrl });
+
+  // Fallback dictionary for common spelling/grammar errors (ensures it works offline/rate-limited)
+  const fallbackDict = {
+    'particepiate': 'participate',
+    'particepiated': 'participated',
+    'particepiating': 'participating',
+    'teh': 'the',
+    'recieve': 'receive',
+    'recieved': 'received',
+    'seperate': 'separate',
+    'seperated': 'separated',
+    'dont': "don't",
+    'cant': "can't",
+    'wont': "won't",
+    'deanceEvent': 'danceEvent'
+  };
+
+  const applyFallback = (str) => {
+    let corrected = str;
+    Object.entries(fallbackDict).forEach(([key, val]) => {
+      const regex = new RegExp(`\\b${key}\\b`, 'gi');
+      corrected = corrected.replace(regex, val);
+    });
+    return corrected;
+  };
+
+  try {
+    const controller = new AbortController();
+    const id = setTimeout(() => controller.abort(), 4000); // 4s timeout
+
+    const response = await fetch('https://api.languagetool.org/v2/check', {
+      method: 'POST',
+      body: new URLSearchParams({ text: text.trim(), language: 'en-US' }),
+      signal: controller.signal
+    });
+    clearTimeout(id);
+
+    if (!response.ok) {
+      throw new Error('LanguageTool service returned error status');
+    }
+
+    const data = await response.json();
+    if (data.matches && data.matches.length > 0) {
+      const sorted = [...data.matches].sort((a, b) => b.offset - a.offset);
+      let result = text;
+      for (const m of sorted) {
+        if (m.replacements && m.replacements.length > 0) {
+          const replacement = m.replacements[0].value;
+          result = result.substring(0, m.offset) + replacement + result.substring(m.offset + m.length);
+        }
+      }
+      return res.json({ success: true, correctedText: applyFallback(result) });
+    }
+
+    return res.json({ success: true, correctedText: applyFallback(text) });
+  } catch (err) {
+    console.log('Spelling correction API failed/timeout, applying fallback dictionary:', err.message);
+    const corrected = applyFallback(text);
+    return res.json({ success: true, correctedText: corrected, isFallback: true });
+  }
 });
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────

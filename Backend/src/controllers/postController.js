@@ -17,6 +17,11 @@ const createPostSchema = z.object({
   mediaUrls: z.array(z.string()).max(6).optional(),
   isEmergency: z.boolean().optional(),
   expiresAt: z.string().datetime().optional(),
+  spreadRadius: z.number().int().positive().optional(),
+  geoPoint: z.object({
+    type: z.literal('Point'),
+    coordinates: z.array(z.number()).length(2),
+  }).optional(),
   event: z.object({
     startTime: z.string().datetime(),
     endTime: z.string().datetime().optional(),
@@ -44,7 +49,10 @@ const castVoteSchema = z.object({
 const getFeed = asyncHandler(async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 20, 50);
   const before = req.query.before || null;
-  const posts = await postModel.getFeedForUser(req.user.id, { limit, before });
+  const lat = req.query.lat ? parseFloat(req.query.lat) : undefined;
+  const lng = req.query.lng ? parseFloat(req.query.lng) : undefined;
+
+  const posts = await postModel.getFeedForUser(req.user.id, { limit, before, lat, lng });
   const nextCursor = posts.length === limit ? posts[posts.length - 1].created_at : null;
   return ok(res, { posts, nextCursor, count: posts.length });
 });
@@ -85,6 +93,8 @@ const createPost = asyncHandler(async (req, res) => {
     mediaUrls: data.mediaUrls || [],
     isEmergency: data.type === 'emergency' || data.isEmergency || false,
     expiresAt: data.expiresAt || null,
+    geoPoint: data.geoPoint || null,
+    spreadRadius: data.spreadRadius || null,
   });
 
   if (data.type === 'event' && data.event) {

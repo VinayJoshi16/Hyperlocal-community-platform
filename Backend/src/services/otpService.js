@@ -50,7 +50,7 @@ async function verifyOtp(email, submittedCode, name) {
       }
       
       const displayName = name || `${prefix.charAt(0).toUpperCase() + prefix.slice(1)} Test User`;
-      user = await userModel.createUser({ email, name: displayName, role });
+      user = await userModel.createUser({ email, name: displayName, role, isVerified: true });
       isNewUser = true;
     } else if (!user.is_verified) {
       user = await userModel.markVerified(user.id);
@@ -88,7 +88,7 @@ async function verifyOtp(email, submittedCode, name) {
   let isNewUser = false;
 
   if (!user) {
-    user = await userModel.createUser({ email, name });
+    user = await userModel.createUser({ email, name, isVerified: true });
     isNewUser = true;
     await emailService.sendWelcomeEmail(email, name).catch((err) => {
       // Welcome email failing should never block signup

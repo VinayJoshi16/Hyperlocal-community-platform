@@ -20,7 +20,7 @@ export const setLocationFromGPS = createAsyncThunk(
   'location/setFromGPS',
   async ({ lat, lng }, { rejectWithValue }) => {
     try {
-      const res = await locationAPI.setLocation(lat, lng)
+      const res = await locationAPI.resolveGPS(lat, lng)
       return res.data.data.hierarchy
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Could not resolve your location')

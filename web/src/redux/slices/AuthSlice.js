@@ -33,6 +33,52 @@ export const verifyOtp = createAsyncThunk(
   }
 )
 
+export const registerUser = createAsyncThunk(
+  'auth/register',
+  async (registerData, { rejectWithValue }) => {
+    try {
+      const res = await authAPI.register(registerData)
+      return res.data.data
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Registration failed')
+    }
+  }
+)
+
+export const verifyRegistration = createAsyncThunk(
+  'auth/verifyRegistration',
+  async ({ email, code }, { rejectWithValue }) => {
+    try {
+      const res = await authAPI.verifyRegistration(email, code)
+      const { accessToken, refreshToken, user } = res.data.data
+
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+
+      return { user }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Verification failed')
+    }
+  }
+)
+
+export const loginUser = createAsyncThunk(
+  'auth/login',
+  async ({ email, password }, { rejectWithValue }) => {
+    try {
+      const res = await authAPI.login(email, password)
+      const { accessToken, refreshToken, user } = res.data.data
+
+      localStorage.setItem('accessToken', accessToken)
+      localStorage.setItem('refreshToken', refreshToken)
+
+      return { user }
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Login failed')
+    }
+  }
+)
+
 export const refreshToken = createAsyncThunk(
   'auth/refreshToken',
   async (_, { rejectWithValue }) => {
@@ -143,6 +189,62 @@ const authSlice = createSlice({
       .addCase(sendOtp.rejected, (state, action) => {
         state.sendingOtp = false
         state.error      = action.payload
+        toast.error(action.payload)
+      })
+
+    // ── registerUser ──
+    builder
+      .addCase(registerUser.pending, (state) => {
+        state.sendingOtp = true
+        state.error      = null
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        state.sendingOtp = false
+        state.otpSent    = true
+        state.otpEmail   = action.meta.arg.email
+        toast.success('Registration code sent! Please verify your email.')
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.sendingOtp = false
+        state.error      = action.payload
+        toast.error(action.payload)
+      })
+
+    // ── verifyRegistration ──
+    builder
+      .addCase(verifyRegistration.pending, (state) => {
+        state.verifyingOtp = true
+        state.error        = null
+      })
+      .addCase(verifyRegistration.fulfilled, (state, action) => {
+        state.verifyingOtp    = false
+        state.user            = action.payload.user
+        state.isAuthenticated = true
+        state.otpSent         = false
+        state.otpEmail        = ''
+        toast.success('Welcome! Your account has been created.')
+      })
+      .addCase(verifyRegistration.rejected, (state, action) => {
+        state.verifyingOtp = false
+        state.error        = action.payload
+        toast.error(action.payload)
+      })
+
+    // ── loginUser ──
+    builder
+      .addCase(loginUser.pending, (state) => {
+        state.isLoading = true
+        state.error     = null
+      })
+      .addCase(loginUser.fulfilled, (state, action) => {
+        state.isLoading       = false
+        state.user            = action.payload.user
+        state.isAuthenticated = true
+        toast.success('Signed in successfully.')
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false
+        state.error     = action.payload
         toast.error(action.payload)
       })
 

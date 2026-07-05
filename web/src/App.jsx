@@ -8,14 +8,15 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { fetchMe, selectIsAuthenticated, selectAuthLoading } from './redux/slices/authSlice'
-import { fetchMyLocations, selectNeedsLocation } from './redux/slices/locationSlice'
+import { fetchMyLocations } from './redux/slices/locationSlice'
 import { connectSocket, disconnectSocket } from './services/socket'
 
+import LandingPage    from './pages/LandingPage'
 import LoginPage      from './pages/LoginPage'
+import RegisterPage   from './pages/RegisterPage'
 import FeedPage       from './pages/FeedPage'
 import PostDetailPage from './pages/PostDetailPage'
 import ProfilePage    from './pages/ProfilePage'
-import OnboardingPage from './pages/OnboardingPage'
 import NotFoundPage   from './pages/NotFoundPage'
 import AppShell       from './components/layout/AppShell'
 import SplashScreen   from './components/common/SplashScreen'
@@ -39,7 +40,6 @@ function PublicRoute({ children }) {
 export default function App() {
   const dispatch        = useDispatch()
   const isAuthenticated = useSelector(selectIsAuthenticated)
-  const needsLocation   = useSelector(selectNeedsLocation)
 
   // On first load: check stored token and fetch user profile
   useEffect(() => {
@@ -63,18 +63,18 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
-      <Route path="/onboarding" element={<ProtectedRoute><OnboardingPage /></ProtectedRoute>} />
-      <Route path="/" element={
+      <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+      <Route element={
         <ProtectedRoute>
-          {needsLocation ? <Navigate to="/onboarding" replace /> : <AppShell />}
+          <AppShell />
         </ProtectedRoute>
       }>
-        <Route index element={<Navigate to="/feed" replace />} />
-        <Route path="feed"            element={<FeedPage />} />
-        <Route path="posts/:id"       element={<PostDetailPage />} />
-        <Route path="profile"         element={<ProfilePage />} />
-        <Route path="profile/:userId" element={<ProfilePage />} />
+        <Route path="/feed"            element={<FeedPage />} />
+        <Route path="/posts/:id"       element={<PostDetailPage />} />
+        <Route path="/profile"         element={<ProfilePage />} />
+        <Route path="/profile/:userId" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>

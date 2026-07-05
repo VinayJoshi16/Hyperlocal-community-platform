@@ -10,27 +10,28 @@ const {
   getChildren,
   searchLocations,
   joinLocation,
+  resolveGps,
 } = require('../controllers/locationController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
-// All location routes require a valid JWT
+// ─── Public routes (no JWT required) ─────────────────────────────────────────
+
+// Resolve GPS coordinates (lat/lng) to locations hierarchy
+router.post('/resolve-gps', resolveGps);
+
+// Search locations by name manual picker
+router.get('/search', searchLocations);
+
+// ─── Protected routes (JWT required) ─────────────────────────────────────────
 router.use(authMiddleware);
 
-// ─── Routes ──────────────────────────────────────────────────────────────────
-
 // Set user location from GPS coordinates (lat/lng)
-// Called right after login if user has no location set yet
 router.post('/set', setUserLocation);
 
 // Get all location levels the current user belongs to
 router.get('/mine', getMyLocations);
 
-// Search locations by name (powers the manual location picker)
-// GET /api/location/search?q=dehradun
-router.get('/search', searchLocations);
-
 // Get direct children of a location node
-// e.g. GET /api/location/:id/children -> all areas inside a city
 router.get('/:id/children', getChildren);
 
 // Manually join a specific society by ID

@@ -14,6 +14,7 @@ import toast from 'react-hot-toast'
 
 import { reactToPost } from '../../redux/slices/feedSlice'
 import { postsAPI } from '../../services/api'
+import { renderBodyWithLinks } from '../../utils/linkify'
 
 const TYPE_CONFIG = {
   announcement: { label: 'Update',       className: 'badge-stone' },
@@ -178,17 +179,31 @@ export default function PostCard({ post }) {
           </h2>
         )}
         <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-wrap line-clamp-3">
-          {postState.body}
+          {renderBodyWithLinks(postState.body)}
         </p>
-        {postState.media_urls && postState.media_urls.length > 0 && (
-          <div className="mt-3 overflow-hidden rounded-xl border border-stone-200 max-h-72 bg-stone-50">
-            <img 
-              src={postState.media_urls[0]} 
-              alt="Post Attachment" 
-              className="w-full h-full object-cover max-h-72" 
-            />
-          </div>
-        )}
+        {postState.media_urls && postState.media_urls.length > 0 && (() => {
+          const imgUrl = postState.media_urls[0]
+          const isContain = imgUrl.endsWith('#contain')
+          const isSquare = imgUrl.endsWith('#square')
+          
+          return (
+            <div className={`mt-3 overflow-hidden rounded-xl border border-stone-200 bg-stone-50/30 flex justify-center items-center ${
+              isSquare ? 'max-w-xs mx-auto aspect-square' : 'max-h-72 w-full'
+            }`}>
+              <img 
+                src={imgUrl} 
+                alt="Post Attachment" 
+                className={`w-full ${
+                  isContain 
+                    ? 'object-contain max-h-72 bg-stone-100/60 p-1.5' 
+                    : isSquare 
+                    ? 'object-cover aspect-square' 
+                    : 'object-cover aspect-video max-h-72'
+                }`} 
+              />
+            </div>
+          )
+        })()}
 
         {/* Type specific: EVENTS details */}
         {postState.type === 'event' && postState.event && (

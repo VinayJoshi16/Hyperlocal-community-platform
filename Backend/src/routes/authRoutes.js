@@ -14,6 +14,9 @@ const {
   logoutAll,
   getMe,
   updateMe,
+  register,
+  verifyRegistration,
+  login,
 } = require('../controllers/authController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
@@ -44,6 +47,15 @@ const authLimiter = rateLimit({
 });
 
 // ─── Public routes (no JWT required) ─────────────────────────────────────────
+
+// Register new user (initiates verification)
+router.post('/register', authLimiter, register);
+
+// Verify registration OTP and activate user
+router.post('/verify-registration', authLimiter, verifyRegistration);
+
+// Login (email + password)
+router.post('/login', authLimiter, login);
 
 // Send OTP to email
 router.post('/send-otp', otpLimiter, sendOtp);
