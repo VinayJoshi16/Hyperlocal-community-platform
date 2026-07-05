@@ -2,24 +2,50 @@
 
 import { useEffect, useCallback, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { AlertTriangle, X, Loader2 } from 'lucide-react'
+
+import { 
+  fetchFeed, selectPosts, selectFeedLoading, 
+  selectLoadingMore, selectHasMore, selectNextCursor, 
+  selectEmergencyAlert, dismissEmergencyAlert, clearFeed
+} from '../redux/slices/feedSlice'
+import { selectActiveLocation } from '../redux/slices/locationSlice'
+import { selectFeedFilter, setFeedFilter } from '../redux/slices/uiSlice'
+
+import CreatePostForm from '../components/feed/CreatePostForm'
+import FilterPills from '../components/feed/FilterPills'
+import PostCard from '../components/feed/PostCard'
+import PostSkeleton from '../components/feed/PostSkeleton'
+import EmptyFeed from '../components/feed/EmptyFeed'
 
 export default function FeedPage() {
+  const dispatch = useDispatch()
   const bottomRef = useRef(null)
 
-  // Initial feed load - refetches when active location changes
+  const posts = useSelector(selectPosts)
+  const isLoading = useSelector(selectFeedLoading)
+  const isLoadingMore = useSelector(selectLoadingMore)
+  const hasMore = useSelector(selectHasMore)
+  const nextCursor = useSelector(selectNextCursor)
+  const emergencyAlert = useSelector(selectEmergencyAlert)
+  const activeLocation = useSelector(selectActiveLocation)
+  const feedFilter = useSelector(selectFeedFilter)
+
+  // Clear feed and load initial feed when active location changes
   useEffect(() => {
-    dispatch(fetchFeed({ limit: 20 }))
+    dispatch(clearFeed())
+    if (activeLocation?.id) {
+      dispatch(fetchFeed({ limit: 20 }))
+    }
   }, [dispatch, activeLocation?.id])
 
-  // IntersectionObserver drives infinite scroll -
-  // when the invisible div at the bottom enters the viewport,
-  // dispatch fetchFeed with the cursor from the last batch
+  // IntersectionObserver drives infinite scroll
   const handleObserver = useCallback((entries) => {
     const [entry] = entries
-    if (entry.isIntersecting && hasMore && !isLoadingMore) {
+    if (entry.isIntersecting && hasMore && !isLoadingMore && !isLoading) {
       dispatch(fetchFeed({ limit: 20, before: nextCursor }))
     }
-  }, [hasMore, isLoadingMore, nextCursor])
+  }, [dispatch, hasMore, isLoadingMore, isLoading, nextCursor])
 
   useEffect(() => {
     const observer = new IntersectionObserver(handleObserver, { threshold: 0.1 })
@@ -33,12 +59,65 @@ export default function FeedPage() {
     : posts.filter((p) => p.type === feedFilter)
 
   return (
-    <div className="max-w-feed mx-auto w-full">
+    <div className="max-w-feed mx-auto w-full px-4 py-6">
+      {/* Emergency alert banner */}
+      {emergencyAlert && (
+        <div className="emergency-banner rounded-xl mb-6 shadow-md flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <AlertTriangle size={20} className="animate-pulse text-white flex-shrink-0" />
+            <p className="text-sm font-medium leading-relaxed">
+              <span className="font-bold uppercase mr-1">Alert:</span>
+              {emergencyAlert}
+            </p>
+          </div>
+          <button 
+            onClick={() => dispatch(dismissEmergencyAlert())}
+            className="text-white hover:bg-red-700/50 p-1.5 rounded-full transition-colors flex-shrink-0"
+          >
+            <X size={16} />
+          </button>
+        </div>
+      )}
+
       {/* Create post composer (collapsed → expanded) */}
+      <CreatePostForm />
+
       {/* Filter pills */}
-      {/* Post cards with skeletons */}
+      <FilterPills 
+        active={feedFilter} 
+        onChange={(type) => dispatch(setFeedFilter(type))} 
+        className="mb-6"
+      />
+
+      {/* Feed list with skeletons */}
+      <div className="space-y-4">
+        {isLoading && filteredPosts.length === 0 ? (
+          /* Render initial loading skeletons */
+          <>
+            <PostSkeleton />
+            <PostSkeleton />
+            <PostSkeleton />
+          </>
+        ) : filteredPosts.length === 0 ? (
+          /* Render empty feed message */
+          <EmptyFeed filter={feedFilter} />
+        ) : (
+          /* Render list of post cards */
+          filteredPosts.map((post) => (
+            <PostCard key={post.id} post={post} />
+          ))
+        )}
+
+        {/* Loading more spinner */}
+        {isLoadingMore && (
+          <div className="flex justify-center py-4">
+            <Loader2 className="animate-spin text-stone-400" size={24} />
+          </div>
+        )}
+      </div>
+
       {/* Invisible div for IntersectionObserver */}
-      <div ref={bottomRef} className="h-1" />
+      <div ref={bottomRef} className="h-4 w-full" />
     </div>
   )
 }

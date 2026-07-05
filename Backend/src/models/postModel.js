@@ -32,22 +32,64 @@ async function createPost({ authorId, locationId, type, title, body, mediaUrls, 
   return res.rows[0];
 }
 
-async function findById(id) {
+function getPostSelectFields(userIdParamNumber) {
+  const userIdVal = userIdParamNumber ? `$${userIdParamNumber}` : 'NULL';
+  return `
+    p.*,
+    u.name AS author_name,
+    u.avatar_url AS author_avatar,
+    u.role AS author_role,
+    l.name AS location_name,
+    l.type AS location_type,
+    (SELECT COUNT(*)::int FROM comments c WHERE c.post_id = p.id) AS comment_count,
+    (SELECT COUNT(*)::int FROM reactions r WHERE r.post_id = p.id) AS reaction_count,
+    EXISTS(
+      SELECT 1 FROM reactions r2
+      WHERE r2.post_id = p.id AND r2.user_id = ${userIdVal}
+    ) AS has_reacted,
+    (
+      SELECT row_to_json(e) FROM (
+        SELECT start_time, end_time, venue, max_attendees, rsvp_count,
+               EXISTS(
+                 SELECT 1 FROM event_rsvps er
+                 WHERE er.event_id = events.id AND er.user_id = ${userIdVal}
+               ) AS has_rsvped
+        FROM events
+        WHERE events.post_id = p.id
+      ) e
+    ) AS event,
+    (
+      SELECT row_to_json(po_data) FROM (
+        SELECT id, options, ends_at, is_anonymous,
+               (
+                 SELECT option_index FROM poll_votes pv
+                 WHERE pv.poll_id = polls.id AND pv.user_id = ${userIdVal}
+               ) AS voted_option_index,
+               (
+                 SELECT json_agg(v) FROM (
+                   SELECT option_index, COUNT(*)::int AS count
+                   FROM poll_votes pv2
+                   WHERE pv2.poll_id = polls.id
+                   GROUP BY option_index
+                 ) v
+               ) AS votes
+        FROM polls
+        WHERE polls.post_id = p.id
+      ) po_data
+    ) AS poll
+  `;
+}
+
+async function findById(id, userId = null) {
+  const fields = getPostSelectFields(userId ? 2 : null);
   const res = await query(
-    `SELECT p.*,
-            u.name AS author_name,
-            u.avatar_url AS author_avatar,
-            u.role AS author_role,
-            l.name AS location_name,
-            l.type AS location_type,
-            (SELECT COUNT(*)::int FROM comments c WHERE c.post_id = p.id) AS comment_count,
-            (SELECT COUNT(*)::int FROM reactions r WHERE r.post_id = p.id) AS reaction_count
+    `SELECT ${fields}
      FROM posts p
      JOIN users u ON u.id = p.author_id
      JOIN locations l ON l.id = p.location_id
      WHERE p.id = $1
        AND (p.expires_at IS NULL OR p.expires_at > NOW())`,
-    [id]
+    userId ? [id, userId] : [id]
   );
   return res.rows[0] || null;
 }
@@ -67,13 +109,9 @@ async function pinPost(id, isPinned) {
 // ─── Feed ─────────────────────────────────────────────────────────────────────
 
 async function getFeedForUser(userId, { limit = 20, before } = {}) {
+  const fields = getPostSelectFields(1);
   const res = await query(
-    `SELECT p.*,
-            u.name  AS author_name,
-            u.avatar_url AS author_avatar,
-            u.role  AS author_role,
-            l.name  AS location_name,
-            l.type  AS location_type,
+    `SELECT ${fields},
             CASE l.type
               WHEN 'society' THEN 1
               WHEN 'area'    THEN 2
@@ -81,13 +119,7 @@ async function getFeedForUser(userId, { limit = 20, before } = {}) {
               WHEN 'state'   THEN 4
               WHEN 'country' THEN 5
               ELSE 6
-            END AS location_rank,
-            (SELECT COUNT(*)::int FROM comments c WHERE c.post_id = p.id) AS comment_count,
-            (SELECT COUNT(*)::int FROM reactions r WHERE r.post_id = p.id) AS reaction_count,
-            EXISTS(
-              SELECT 1 FROM reactions r2
-              WHERE r2.post_id = p.id AND r2.user_id = $1
-            ) AS has_reacted
+            END AS location_rank
      FROM posts p
      JOIN users u ON u.id = p.author_id
      JOIN locations l ON l.id = p.location_id
@@ -107,13 +139,11 @@ async function getFeedForUser(userId, { limit = 20, before } = {}) {
 }
 
 async function getPostsByUser(userId, { limit = 20, before } = {}) {
+  const fields = getPostSelectFields(1);
   const res = await query(
-    `SELECT p.*,
-            l.name AS location_name,
-            l.type AS location_type,
-            (SELECT COUNT(*)::int FROM comments c WHERE c.post_id = p.id) AS comment_count,
-            (SELECT COUNT(*)::int FROM reactions r WHERE r.post_id = p.id) AS reaction_count
+    `SELECT ${fields}
      FROM posts p
+     JOIN users u ON u.id = p.author_id
      JOIN locations l ON l.id = p.location_id
      WHERE p.author_id = $1
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
@@ -125,22 +155,20 @@ async function getPostsByUser(userId, { limit = 20, before } = {}) {
   return res.rows;
 }
 
-async function getPostsByTypeAndLocation(locationId, type, { limit = 20, before } = {}) {
+async function getPostsByTypeAndLocation(locationId, type, userId, { limit = 20, before } = {}) {
+  const fields = getPostSelectFields(3);
   const res = await query(
-    `SELECT p.*,
-            u.name AS author_name,
-            u.avatar_url AS author_avatar,
-            (SELECT COUNT(*)::int FROM comments c WHERE c.post_id = p.id) AS comment_count,
-            (SELECT COUNT(*)::int FROM reactions r WHERE r.post_id = p.id) AS reaction_count
+    `SELECT ${fields}
      FROM posts p
      JOIN users u ON u.id = p.author_id
+     JOIN locations l ON l.id = p.location_id
      WHERE p.location_id = $1
        AND p.type = $2
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
-       AND ($4::timestamptz IS NULL OR p.created_at < $4)
+       AND ($5::timestamptz IS NULL OR p.created_at < $5)
      ORDER BY p.is_pinned DESC, p.created_at DESC
-     LIMIT $3`,
-    [locationId, type, limit, before || null]
+     LIMIT $4`,
+    [locationId, type, userId, limit, before || null]
   );
   return res.rows;
 }

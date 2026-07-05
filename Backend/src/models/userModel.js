@@ -13,12 +13,12 @@ async function findById(id) {
   return res.rows[0] || null;
 }
 
-async function createUser({ email, name }) {
+async function createUser({ email, name, role = 'user' }) {
   const res = await query(
-    `INSERT INTO users (email, name, is_verified)
-     VALUES ($1, $2, true)
+    `INSERT INTO users (email, name, role, is_verified)
+     VALUES ($1, $2, $3, true)
      RETURNING *`,
-    [email.toLowerCase(), name || null]
+    [email.toLowerCase(), name || null, role]
   );
   return res.rows[0];
 }

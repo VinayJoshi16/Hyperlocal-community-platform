@@ -52,7 +52,7 @@ const getFeed = asyncHandler(async (req, res) => {
 // ─── Post CRUD ────────────────────────────────────────────────────────────────
 
 const getPost = asyncHandler(async (req, res) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.id, req.user.id);
   if (!post) return fail(res, 'Post not found.', 404);
   return ok(res, { post });
 });
@@ -105,12 +105,12 @@ const createPost = asyncHandler(async (req, res) => {
     );
   }
 
-  const fullPost = await postModel.findById(post.id);
+  const fullPost = await postModel.findById(post.id, req.user.id);
   return ok(res, { post: fullPost }, 201);
 });
 
 const deletePost = asyncHandler(async (req, res) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.id, req.user.id);
   if (!post) return fail(res, 'Post not found.', 404);
 
   const isOwner = post.author_id === req.user.id;
@@ -125,7 +125,7 @@ const deletePost = asyncHandler(async (req, res) => {
 });
 
 const togglePin = asyncHandler(async (req, res) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.id, req.user.id);
   if (!post) return fail(res, 'Post not found.', 404);
   const updated = await postModel.pinPost(req.params.id, !post.is_pinned);
   return ok(res, { post: updated });
@@ -146,7 +146,7 @@ const getLocationPosts = asyncHandler(async (req, res) => {
   const before = req.query.before || null;
 
   if (type) {
-    const posts = await postModel.getPostsByTypeAndLocation(locationId, type, { limit, before });
+    const posts = await postModel.getPostsByTypeAndLocation(locationId, type, req.user.id, { limit, before });
     const nextCursor = posts.length === limit ? posts[posts.length - 1].created_at : null;
     return ok(res, { posts, nextCursor });
   }

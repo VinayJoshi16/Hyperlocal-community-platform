@@ -73,7 +73,7 @@ export default function App() {
         <Route index element={<Navigate to="/feed" replace />} />
         <Route path="feed"            element={<FeedPage />} />
         <Route path="posts/:id"       element={<PostDetailPage />} />
-        <Route path="profile"         from  element={<ProfilePage />} />
+        <Route path="profile"         element={<ProfilePage />} />
         <Route path="profile/:userId" element={<ProfilePage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />

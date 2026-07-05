@@ -1,23 +1,18 @@
+import colors from 'tailwindcss/colors'
+
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
       colors: {
-        primary: {
-          50:  '#eff6ff',
-          600: '#2563eb',  // main CTA
-          700: '#1d4ed8',
-          // ... full scale
-        },
+        primary: colors.blue,
         stone: {
           50:  '#fafaf9',  // page background
           100: '#f5f5f4',  // card background
           // warm neutrals, not cold grey
         },
-        amber: {
-          // used ONLY for business/local features
-        },
+        amber: colors.amber,
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
