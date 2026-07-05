@@ -116,6 +116,7 @@ export const postsAPI = {
     api.get('/posts/feed', { params: { limit, before } }),
   getPost:          (id)    => api.get(`/posts/${id}`),
   createPost:       (data)  => api.post('/posts', data),
+  uploadImage:      (formData) => api.post('/posts/upload', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   deletePost:       (id)    => api.delete(`/posts/${id}`),
   togglePin:        (id)    => api.patch(`/posts/${id}/pin`),
   getUserPosts:     (userId, { limit, before } = {}) =>

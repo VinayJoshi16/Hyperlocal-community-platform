@@ -14,7 +14,7 @@ const createPostSchema = z.object({
   type: z.enum(['announcement', 'notice', 'event', 'lost_found', 'business', 'poll', 'emergency']),
   title: z.string().max(160).optional(),
   body: z.string().min(1, 'Post body cannot be empty').max(5000),
-  mediaUrls: z.array(z.string().url()).max(6).optional(),
+  mediaUrls: z.array(z.string()).max(6).optional(),
   isEmergency: z.boolean().optional(),
   expiresAt: z.string().datetime().optional(),
   event: z.object({

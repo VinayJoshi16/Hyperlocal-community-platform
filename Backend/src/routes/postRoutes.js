@@ -23,8 +23,19 @@ const {
 const { authMiddleware } = require('../middleware/authMiddleware');
 const { requireAdminOrModerator } = require('../middleware/rbacMiddleware');
 
+const upload = require('../middleware/uploadMiddleware');
+
 // All post routes require a valid JWT
 router.use(authMiddleware);
+
+// POST /api/posts/upload - handles single image upload
+router.post('/upload', upload.single('image'), (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ success: false, message: 'No file uploaded.' });
+  }
+  const fileUrl = `/uploads/${req.file.filename}`;
+  return res.json({ success: true, url: fileUrl });
+});
 
 // ─── Feed ─────────────────────────────────────────────────────────────────────
 

@@ -310,6 +310,15 @@ export default function PostDetailPage() {
           <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-wrap">
             {post.body}
           </p>
+          {post.media_urls && post.media_urls.length > 0 && (
+            <div className="mt-4 overflow-hidden rounded-xl border border-stone-200 max-h-96 bg-stone-50">
+              <img 
+                src={post.media_urls[0]} 
+                alt="Post Attachment" 
+                className="w-full h-full object-cover max-h-96" 
+              />
+            </div>
+          )}
 
           {/* EVENTS Section */}
           {post.type === 'event' && post.event && (

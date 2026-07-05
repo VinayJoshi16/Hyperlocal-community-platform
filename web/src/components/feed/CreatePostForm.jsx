@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { 
   Megaphone, Calendar, Search, Briefcase, 
-  BarChart2, AlertTriangle, FileText, Plus, X, Loader 
+  BarChart2, AlertTriangle, FileText, Plus, X, Loader,
+  Image as ImageIcon
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
@@ -10,6 +11,7 @@ import { createPost } from '../../redux/slices/feedSlice'
 import { selectActiveLocation } from '../../redux/slices/locationSlice'
 import { selectUser } from '../../redux/slices/AuthSlice'
 import { selectCreatePostOpen, setCreatePostOpen } from '../../redux/slices/uiSlice'
+import { postsAPI } from '../../services/api'
 
 const POST_TYPES = [
   { type: 'announcement', label: 'Update',       icon: Megaphone,     roles: ['user', 'admin', 'business', 'moderator'] },
@@ -38,6 +40,37 @@ export default function CreatePostForm() {
 
   // Poll specific fields
   const [pollOptions, setPollOptions] = useState(['', ''])
+
+  // Photo upload specific fields
+  const [mediaUrl, setMediaUrl] = useState('')
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const fileInputRef = useRef(null)
+
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('image', file)
+
+    setUploadingImage(true)
+    try {
+      const res = await postsAPI.uploadImage(formData)
+      if (res.data.success) {
+        setMediaUrl(res.data.url)
+        toast.success('Image uploaded successfully!')
+      }
+    } catch (err) {
+      toast.error('Failed to upload image.')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
+
+  const handleRemoveImage = () => {
+    setMediaUrl('')
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
 
   const userRole = user?.role || 'user'
   const availableTypes = POST_TYPES.filter(t => t.roles.includes(userRole))
@@ -76,6 +109,7 @@ export default function CreatePostForm() {
       type,
       title: title.trim() || undefined,
       body: body.trim(),
+      mediaUrls: mediaUrl ? [mediaUrl] : undefined
     }
 
     if (type === 'event') {
@@ -111,6 +145,8 @@ export default function CreatePostForm() {
         setEventStartTime('')
         setEventVenue('')
         setPollOptions(['', ''])
+        setMediaUrl('')
+        if (fileInputRef.current) fileInputRef.current.value = ''
         dispatch(setCreatePostOpen(false))
       }
     } catch (err) {
@@ -216,6 +252,22 @@ export default function CreatePostForm() {
             className="w-full px-3 py-2.5 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white resize-none"
             maxLength={5000}
           />
+          {mediaUrl && (
+            <div className="relative w-max mt-2">
+              <img 
+                src={mediaUrl} 
+                alt="Preview" 
+                className="w-24 h-24 object-cover rounded-lg border border-stone-200"
+              />
+              <button
+                type="button"
+                onClick={handleRemoveImage}
+                className="absolute -top-1.5 -right-1.5 bg-stone-850 text-white p-0.5 rounded-full hover:bg-stone-950 transition-colors flex items-center justify-center shadow-md"
+              >
+                <X size={10} />
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Dynamic Fields for EVENTS */}
@@ -289,33 +341,61 @@ export default function CreatePostForm() {
         )}
 
         {/* Submit Actions */}
-        <div className="flex justify-end gap-3 pt-2">
-          <button
-            type="button"
-            onClick={() => dispatch(setCreatePostOpen(false))}
-            className="btn-secondary px-4 py-2 text-sm"
-            disabled={isSubmitting}
-          >
-            Cancel
-          </button>
-          <button
-            type="submit"
-            className={`btn-primary px-5 py-2 text-sm flex items-center gap-1.5 ${
-              isEmergencyType ? 'bg-red-600 hover:bg-red-700 border-red-600' : ''
-            }`}
-            disabled={isSubmitting || !body.trim()}
-          >
-            {isSubmitting ? (
-              <>
+        <div className="flex justify-between items-center pt-2">
+          {/* Left Action: Photo Uploader */}
+          <div>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageUpload}
+              className="hidden"
+              ref={fileInputRef}
+              disabled={isSubmitting || uploadingImage}
+            />
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="px-3 py-2 text-stone-500 hover:text-stone-700 hover:bg-stone-100 rounded-lg flex items-center gap-1.5 transition-colors text-xs font-semibold"
+              disabled={isSubmitting || uploadingImage}
+            >
+              {uploadingImage ? (
                 <Loader className="animate-spin" size={14} />
-                Publishing...
-              </>
-            ) : isEmergencyType ? (
-              'Publish Alert'
-            ) : (
-              'Publish Post'
-            )}
-          </button>
+              ) : (
+                <ImageIcon size={14} />
+              )}
+              Add Photo
+            </button>
+          </div>
+
+          {/* Right Actions: Cancel / Publish */}
+          <div className="flex gap-3">
+            <button
+              type="button"
+              onClick={() => dispatch(setCreatePostOpen(false))}
+              className="btn-secondary px-4 py-2 text-sm"
+              disabled={isSubmitting}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className={`btn-primary px-5 py-2 text-sm flex items-center gap-1.5 ${
+                isEmergencyType ? 'bg-red-600 hover:bg-red-700 border-red-600' : ''
+              }`}
+              disabled={isSubmitting || !body.trim()}
+            >
+              {isSubmitting ? (
+                <>
+                  <Loader className="animate-spin" size={14} />
+                  Publishing...
+                </>
+              ) : isEmergencyType ? (
+                'Publish Alert'
+              ) : (
+                'Publish Post'
+              )}
+            </button>
+          </div>
         </div>
       </form>
     </div>

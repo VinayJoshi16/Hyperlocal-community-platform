@@ -180,6 +180,15 @@ export default function PostCard({ post }) {
         <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-wrap line-clamp-3">
           {postState.body}
         </p>
+        {postState.media_urls && postState.media_urls.length > 0 && (
+          <div className="mt-3 overflow-hidden rounded-xl border border-stone-200 max-h-72 bg-stone-50">
+            <img 
+              src={postState.media_urls[0]} 
+              alt="Post Attachment" 
+              className="w-full h-full object-cover max-h-72" 
+            />
+          </div>
+        )}
 
         {/* Type specific: EVENTS details */}
         {postState.type === 'event' && postState.event && (
