@@ -46,8 +46,8 @@ export default function Navbar() {
   }, [])
 
   return (
-    <header className="sticky top-0 z-20 bg-white border-b border-stone-200">
-      <div className="max-w-app mx-auto px-4 h-14 flex items-center gap-3">
+    <header className="sticky top-0 z-20 bg-white border-b border-stone-200/90 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
+      <div className="max-w-app mx-auto px-6 lg:px-10 h-16 flex items-center gap-3">
 
         {/* Hamburger - mobile only */}
         <button className="btn-ghost lg:hidden" onClick={() => dispatch(toggleSidebar())}>
@@ -128,7 +128,7 @@ export default function Navbar() {
                 onClick={() => {
                   setUserMenuOpen(false)
                   dispatch(logout())
-                  navigate('/login')
+                  navigate('/')
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-600 hover:bg-red-50 text-left"
               >

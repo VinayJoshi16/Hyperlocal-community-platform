@@ -110,6 +110,28 @@ const updateMe = asyncHandler(async (req, res) => {
   return ok(res, { user: sanitizeUser(updated) });
 });
 
+// Helper to enroll user in all levels of a location hierarchy (society -> area -> city -> state -> country)
+async function linkUserToLocationHierarchy(userId, locationId) {
+  // Clear any existing memberships first
+  await query('DELETE FROM user_locations WHERE user_id = $1', [userId]);
+
+  let currentLocId = locationId;
+  while (currentLocId) {
+    const locRes = await query('SELECT id, parent_id FROM locations WHERE id = $1', [currentLocId]);
+    if (locRes.rows.length === 0) break;
+    
+    const isPrimary = (currentLocId === locationId);
+    await query(
+      `INSERT INTO user_locations (user_id, location_id, is_primary)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = $3`,
+      [userId, currentLocId, isPrimary]
+    );
+    
+    currentLocId = locRes.rows[0].parent_id;
+  }
+}
+
 // POST /api/auth/register
 // Registers a new unverified user, links primary location, and triggers OTP.
 const register = asyncHandler(async (req, res) => {
@@ -125,13 +147,8 @@ const register = asyncHandler(async (req, res) => {
     const passwordHash = await bcrypt.hash(password, 10);
     await userModel.updateUnverifiedUser(existingUser.id, { name, passwordHash });
     
-    // Update location to new selected location if different
-    await query(
-      `INSERT INTO user_locations (user_id, location_id, is_primary)
-       VALUES ($1, $2, true)
-       ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = true`,
-      [existingUser.id, locationId]
-    );
+    // Update location hierarchy
+    await linkUserToLocationHierarchy(existingUser.id, locationId);
 
     const result = await otpService.requestOtp(email);
     return ok(res, {
@@ -149,13 +166,8 @@ const register = asyncHandler(async (req, res) => {
     passwordHash,
   });
 
-  // Link location
-  await query(
-    `INSERT INTO user_locations (user_id, location_id, is_primary)
-     VALUES ($1, $2, true)
-     ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = true`,
-    [user.id, locationId]
-  );
+  // Link location hierarchy
+  await linkUserToLocationHierarchy(user.id, locationId);
 
   const result = await otpService.requestOtp(email);
   return ok(res, {
@@ -177,12 +189,7 @@ const verifyRegistration = asyncHandler(async (req, res) => {
     [user.id]
   );
   if (locationCheck.rows.length === 0) {
-    await query(
-      `INSERT INTO user_locations (user_id, location_id, is_primary)
-       VALUES ($1, '55555555-5555-5555-5555-555555555555', true)
-       ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = true`,
-      [user.id]
-    );
+    await linkUserToLocationHierarchy(user.id, '55555555-5555-5555-5555-555555555555');
   }
 
   return ok(res, {
@@ -217,12 +224,7 @@ const login = asyncHandler(async (req, res) => {
       [user.id]
     );
     if (locationCheck.rows.length === 0) {
-      await query(
-        `INSERT INTO user_locations (user_id, location_id, is_primary)
-         VALUES ($1, '55555555-5555-5555-5555-555555555555', true)
-         ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = true`,
-        [user.id]
-      );
+      await linkUserToLocationHierarchy(user.id, '55555555-5555-5555-5555-555555555555');
     }
 
     return ok(res, {
@@ -250,12 +252,7 @@ const login = asyncHandler(async (req, res) => {
     [user.id]
   );
   if (locationCheck.rows.length === 0) {
-    await query(
-      `INSERT INTO user_locations (user_id, location_id, is_primary)
-       VALUES ($1, '55555555-5555-5555-5555-555555555555', true)
-       ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = true`,
-      [user.id]
-    );
+    await linkUserToLocationHierarchy(user.id, '55555555-5555-5555-5555-555555555555');
   }
 
   return ok(res, {

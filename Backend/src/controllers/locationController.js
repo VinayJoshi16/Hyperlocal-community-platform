@@ -75,7 +75,7 @@ const resolveGps = asyncHandler(async (req, res) => {
 // GET /api/location/mine
 // Returns all location levels the current user is enrolled in.
 const getMyLocations = asyncHandler(async (req, res) => {
-  const result = await query(
+  let result = await query(
     `SELECT l.id, l.name, l.type, ul.is_primary, ul.joined_at
      FROM user_locations ul
      JOIN locations l ON l.id = ul.location_id
@@ -90,6 +90,46 @@ const getMyLocations = asyncHandler(async (req, res) => {
        END`,
     [req.user.id]
   );
+
+  // Fail-safe: If the user has a primary society linked but parent levels are missing,
+  // walk up the hierarchy and auto-join them in user_locations.
+  const primaryLoc = result.rows.find(r => r.is_primary);
+  const cityLoc = result.rows.find(r => r.type === 'city');
+
+  if (primaryLoc && !cityLoc) {
+    let currentLocId = primaryLoc.id;
+    while (currentLocId) {
+      const locRes = await query('SELECT id, parent_id FROM locations WHERE id = $1', [currentLocId]);
+      if (locRes.rows.length === 0) break;
+      
+      const isPrimary = (currentLocId === primaryLoc.id);
+      await query(
+        `INSERT INTO user_locations (user_id, location_id, is_primary)
+         VALUES ($1, $2, $3)
+         ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = $3`,
+        [req.user.id, currentLocId, isPrimary]
+      );
+      
+      currentLocId = locRes.rows[0].parent_id;
+    }
+
+    // Re-query locations to return the full set
+    result = await query(
+      `SELECT l.id, l.name, l.type, ul.is_primary, ul.joined_at
+       FROM user_locations ul
+       JOIN locations l ON l.id = ul.location_id
+       WHERE ul.user_id = $1
+       ORDER BY
+         CASE l.type
+           WHEN 'society' THEN 1
+           WHEN 'area'    THEN 2
+           WHEN 'city'    THEN 3
+           WHEN 'state'   THEN 4
+           WHEN 'country' THEN 5
+         END`,
+      [req.user.id]
+    );
+  }
 
   return ok(res, { locations: result.rows });
 });

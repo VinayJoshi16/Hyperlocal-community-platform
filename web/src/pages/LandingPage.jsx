@@ -1,8 +1,8 @@
 import { Link, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { 
-  MapPin, MessageSquare, ShieldAlert, Calendar, 
-  Store, Users, LogIn, ArrowRight, ShieldCheck, Heart 
+  MapPin, ShieldAlert, Calendar, Store, Users, 
+  ArrowRight, ShieldCheck, Heart, MessageSquare 
 } from 'lucide-react'
 import { selectIsAuthenticated } from '../redux/slices/authSlice'
 
@@ -11,39 +11,39 @@ export default function LandingPage() {
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   return (
-    <div className="min-h-screen bg-stone-50 text-stone-700 flex flex-col font-sans">
+    <div className="min-h-screen bg-[#FAFAF9] text-[#44403C] flex flex-col font-sans antialiased selection:bg-blue-150 selection:text-blue-900">
       
-      {/* ─── Header / Navbar ─── */}
-      <header className="sticky top-0 z-50 bg-white border-b border-stone-250/60 shadow-sm">
-        <div className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 rounded-lg bg-primary-600 flex items-center justify-center text-white font-extrabold text-sm shadow-sm">
+      {/* ─── Header / Navbar (Wide Layout) ─── */}
+      <header className="sticky top-0 z-50 bg-[#FAFAF9]/80 backdrop-blur-md border-b border-[#E7E5E4] w-full">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-2 cursor-pointer select-none" onClick={() => navigate('/')}>
+            <div className="w-7 h-7 rounded-lg bg-[#2563EB] flex items-center justify-center text-white font-extrabold text-xs shadow-sm">
               N
             </div>
-            <span className="text-base font-bold tracking-tight text-stone-800">
-              Neighbour<span className="text-primary-600">Hub</span>
+            <span className="text-base font-extrabold tracking-tight text-[#1C1917]">
+              Neighbour<span className="text-[#2563EB]">Hub</span>
             </span>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-4">
             {isAuthenticated ? (
               <button 
                 onClick={() => navigate('/feed')}
-                className="btn-primary py-2 px-4 text-xs font-semibold shadow-sm flex items-center gap-1"
+                className="btn-primary py-2.5 px-4.5 text-xs font-bold shadow-md hover:shadow-lg transition-all duration-200"
               >
-                Go to Feed <ArrowRight size={13} />
+                Go to Feed <ArrowRight size={13} className="ml-0.5" />
               </button>
             ) : (
               <>
                 <Link 
                   to="/login"
-                  className="px-3 py-2 rounded-lg text-stone-600 hover:text-stone-900 font-semibold text-xs transition-all flex items-center gap-1"
+                  className="text-xs font-bold text-[#78716C] hover:text-[#1C1917] transition-colors duration-150"
                 >
-                  <LogIn size={13} /> Log In
+                  Log In
                 </Link>
                 <Link 
                   to="/register"
-                  className="btn-primary py-2 px-4 text-xs font-semibold shadow-sm"
+                  className="btn-primary py-2.5 px-4.5 text-xs font-bold shadow-md hover:shadow-lg transition-all duration-200"
                 >
                   Register
                 </Link>
@@ -53,200 +53,338 @@ export default function LandingPage() {
         </div>
       </header>
 
-      {/* ─── Hero Section ─── */}
-      <section className="relative pt-16 pb-12 px-6 max-w-5xl mx-auto flex flex-col items-center text-center">
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-stone-200 text-[10px] font-bold text-stone-650 mb-6 select-none">
-          <MapPin size={11} className="text-primary-500" />
-          <span>Hyperlocal Neighborhood Platform</span>
-        </div>
-
-        <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-tight max-w-3xl text-stone-850">
-          Connect with Your Local <br />
-          <span className="text-primary-650">Community Instantly</span>
-        </h1>
-
-        <p className="mt-5 text-sm sm:text-base text-stone-500 max-w-xl leading-relaxed">
-          The all-in-one verified platform designed to connect you with nearby neighbors, emergency alerts, active community events, marketplace directories, and custom-scoped discussions.
-        </p>
-
-        <div className="mt-8 flex flex-wrap gap-3 justify-center items-center">
-          {isAuthenticated ? (
-            <button 
-              onClick={() => navigate('/feed')}
-              className="btn-primary py-3 px-6 text-xs font-bold shadow-sm flex items-center gap-1.5"
-            >
-              Enter Application <ArrowRight size={14} />
-            </button>
-          ) : (
-            <>
-              <Link 
-                to="/register"
-                className="btn-primary py-3 px-6 text-xs font-bold shadow-sm flex items-center gap-1.5"
-              >
-                Join Your Neighborhood <ArrowRight size={14} />
-              </Link>
-              <Link 
-                to="/login"
-                className="btn-secondary py-3 px-6 text-xs font-bold shadow-sm"
-              >
-                Explore Login
-              </Link>
-            </>
-          )}
-        </div>
-
-        {/* Mock App Feed Preview Block */}
-        <div className="mt-14 w-full max-w-3xl card p-1 bg-stone-100/40 select-none">
-          <div className="bg-white rounded-lg border border-stone-200/80 p-5 flex flex-col gap-3.5 text-left shadow-sm">
-            <div className="flex gap-2.5 items-center">
-              <div className="w-9 h-9 rounded-full bg-stone-150 flex items-center justify-center font-bold text-stone-600 text-xs border border-stone-200">
-                JD
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-stone-800 flex items-center gap-1.5">
-                  John Doe <span className="px-1.5 py-0.5 rounded bg-primary-50 text-primary-700 text-[9px] border border-primary-100 font-bold">Verified Admin</span>
-                </h4>
-                <p className="text-[10px] text-stone-400 font-medium">Bandra West Neighborhood • 5 mins ago</p>
-              </div>
+      {/* ─── Hero Section (Two-Column Split: starts near left, ends near right) ─── */}
+      <section className="relative w-full border-b border-[#E7E5E4] pt-8 md:pt-12 pb-16 md:pb-20">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
+          
+          {/* Left Column: Core pitch (55% width) */}
+          <div className="lg:col-span-7 space-y-7 text-left">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-stone-100 border border-[#E7E5E4] text-[10px] font-bold text-[#78716C] uppercase tracking-widest select-none">
+              <MapPin size={11} className="text-[#2563EB]" />
+              <span>For Indian Neighborhoods</span>
             </div>
-            <div className="space-y-1.5">
-              <span className="px-2 py-0.5 rounded bg-red-50 border border-red-100 text-red-650 font-bold text-[9px] uppercase tracking-wider">
-                Emergency Alert
+
+            <h1 className="text-4xl sm:text-5xl md:text-[54px] font-extrabold tracking-tight text-[#1C1917] leading-[1.05] max-w-2xl">
+              Connect with your <br />
+              neighborhood <br />
+              <span className="text-[#2563EB] relative inline-block">
+                in real time.
+                <span className="absolute bottom-1 left-0 w-full h-[3px] bg-[#2563EB]/10 rounded" />
               </span>
-              <h3 className="text-xs sm:text-sm font-extrabold text-stone-850">Water Supply Maintenance Scheduled for Tuesday</h3>
-              <p className="text-xs text-stone-500 leading-relaxed max-w-xl">
-                Please store enough water for Tuesday, July 7th. BMC will be performing pipeline repairs from 9 AM to 6 PM. All societies in the Garden City area will have zero supply during this period.
-              </p>
+            </h1>
+
+            <p className="text-[16px] md:text-[17px] text-[#78716C] leading-relaxed max-w-xl font-medium">
+              A private, verified platform designed for Indian residential societies. Stay informed about local RWA announcements, nearby events, emergency broadcasts, and trusted local businesses.
+            </p>
+
+            <div className="pt-2 flex flex-wrap items-center gap-3.5">
+              {isAuthenticated ? (
+                <button 
+                  onClick={() => navigate('/feed')}
+                  className="btn-primary py-3.5 px-7 text-sm font-extrabold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                >
+                  Enter Application <ArrowRight size={15} className="ml-1" />
+                </button>
+              ) : (
+                <>
+                  <Link 
+                    to="/register"
+                    className="btn-primary py-3.5 px-7 text-sm font-extrabold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    Join Your Neighborhood <ArrowRight size={15} className="ml-1" />
+                  </Link>
+                  <Link 
+                    to="/login"
+                    className="btn-secondary py-3.5 px-7 text-sm font-extrabold shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
+                  >
+                    Sign In
+                  </Link>
+                </>
+              )}
             </div>
-            <div className="flex items-center gap-3 text-stone-400 border-t border-stone-100 pt-3 text-[10px] font-bold">
-              <span className="flex items-center gap-1"><Users size={11} className="text-stone-450" /> 42 neighbors read</span>
-              <span className="flex items-center gap-1"><MessageSquare size={11} className="text-stone-450" /> 12 comments</span>
+
+            <div className="flex items-center gap-2 text-[12px] text-[#78716C] font-semibold pt-2">
+              <ShieldCheck size={14} className="text-emerald-600" />
+              <span>Verified email address & neighborhood boundaries required.</span>
             </div>
+
+            {/* Hyperlocal Directory Statistics Card (Notion-inspired) */}
+            <div className="bg-white border border-[#E7E5E4] rounded-2xl p-5 shadow-[0_2px_8px_-1px_rgba(0,0,0,0.03),0_8px_16px_-4px_rgba(0,0,0,0.015)] max-w-lg mt-6 text-left space-y-4">
+              <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-widest border-b border-stone-100 pb-2.5">
+                Live Neighborhood Activity (Bandra West)
+              </h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-0.5">
+                  <p className="text-xl font-extrabold text-[#1C1917]">482</p>
+                  <p className="text-[11px] font-semibold text-[#78716C] uppercase tracking-wider">Residents Joined</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xl font-extrabold text-[#2563EB]">18</p>
+                  <p className="text-[11px] font-semibold text-[#78716C] uppercase tracking-wider">Local Businesses</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xl font-extrabold text-emerald-600">8</p>
+                  <p className="text-[11px] font-semibold text-[#78716C] uppercase tracking-wider">Active RWA Members</p>
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xl font-extrabold text-[#F59E0B]">4</p>
+                  <p className="text-[11px] font-semibold text-[#78716C] uppercase tracking-wider">Ongoing Events</p>
+                </div>
+              </div>
+              
+              <div className="divider my-0 border-t border-stone-100" />
+              
+              <div className="space-y-2.5">
+                <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                  Recent Activities
+                </p>
+                <div className="space-y-2">
+                  {[
+                    { text: 'RWA President Rajesh Chawla posted a notice', time: '2h ago' },
+                    { text: 'Oven Fresh Bakery added a new discount code', time: '3h ago' },
+                    { text: 'Green Earth Club scheduled a plantation drive', time: '5h ago' }
+                  ].map((act, idx) => (
+                    <div key={idx} className="flex items-center justify-between text-xs text-[#44403C] font-semibold">
+                      <span className="truncate pr-4">• {act.text}</span>
+                      <span className="text-[10px] text-stone-400 flex-shrink-0">{act.time}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Styled HTML Feed Preview (45% width - ends near right edge) */}
+          <div className="lg:col-span-5 flex flex-col gap-5 select-none w-full">
+            
+            {/* Post 1: Emergency Notice (Red) */}
+            <div className="bg-white border border-[#E7E5E4] rounded-2xl p-5 shadow-[0_2px_8px_-1px_rgba(0,0,0,0.03),0_8px_16px_-4px_rgba(0,0,0,0.015)] text-left hover:border-red-200 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.05)] hover:-translate-y-0.5">
+              <div className="flex gap-2.5 items-center mb-3">
+                <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center font-bold text-[#78716C] text-[10px] border border-[#E7E5E4] shadow-sm">
+                  RC
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#1C1917] flex items-center gap-1.5">
+                    Rajesh Chawla
+                    <span className="px-1.5 py-0.5 rounded bg-red-50 text-red-700 text-[8px] font-bold border border-red-100 uppercase tracking-wide">RWA President</span>
+                  </h4>
+                  <p className="text-[10px] text-[#78716C] font-medium">Bandra West • 2 hrs ago</p>
+                </div>
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-sm font-extrabold text-[#1C1917] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  Water Pipeline Maintenance Tomorrow
+                </h3>
+                <p className="text-xs text-[#78716C] leading-relaxed">
+                  Water supply will be suspended tomorrow (Tuesday) from 9:00 AM to 4:00 PM for repair works. Please store adequate water.
+                </p>
+              </div>
+              <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-6 text-stone-400 text-xs font-bold">
+                <span className="flex items-center gap-1.5 hover:text-red-500 transition-colors"><Heart size={14} /> 42</span>
+                <span className="flex items-center gap-1.5 hover:text-stone-700 transition-colors"><MessageSquare size={14} /> 12</span>
+              </div>
+            </div>
+
+            {/* Post 2: Local Business Showcase (Amber) */}
+            <div className="bg-white border border-[#E7E5E4] rounded-2xl p-5 shadow-[0_2px_8px_-1px_rgba(0,0,0,0.03),0_8px_16px_-4px_rgba(0,0,0,0.015)] text-left hover:border-amber-250 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.05)] hover:-translate-y-0.5 relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1.5 h-full bg-[#F59E0B]" />
+              <div className="flex gap-2.5 items-center mb-3 pl-1">
+                <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center font-bold text-[#F59E0B] text-[10px] border border-amber-100 shadow-sm">
+                  OB
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#1C1917] flex items-center gap-1.5">
+                    Oven Fresh Bakery
+                    <span className="px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 text-[8px] font-bold border border-amber-100 uppercase tracking-wide">Local Business</span>
+                  </h4>
+                  <p className="text-[10px] text-[#78716C] font-medium">0.3 km away • Active Now</p>
+                </div>
+              </div>
+              <div className="space-y-2.5 pl-1">
+                <h3 className="text-sm font-extrabold text-[#1C1917]">Fresh Sourdough & Chai Spiced Loaves</h3>
+                <p className="text-xs text-[#78716C] leading-relaxed">
+                  Hey neighbors! Fresh batch is out of the oven. Mention <span className="font-bold text-[#F59E0B]">NEIGHBOUR15</span> for 15% off at the counter.
+                </p>
+                
+                {/* Generated bakery image display */}
+                <div className="mt-3 overflow-hidden rounded-xl border border-stone-200/60 max-h-48 w-full bg-stone-50/50 flex justify-center items-center">
+                  <img 
+                    src="/fresh_bakery_preview.png" 
+                    alt="Fresh bakery items" 
+                    className="w-full object-cover max-h-48 aspect-video"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-stone-100 pl-1 flex items-center gap-6 text-stone-400 text-xs font-bold">
+                <span className="flex items-center gap-1.5 hover:text-red-500 transition-colors"><Heart size={14} /> 65</span>
+                <span className="flex items-center gap-1.5 hover:text-stone-700 transition-colors"><MessageSquare size={14} /> 8</span>
+              </div>
+            </div>
+
+            {/* Post 3: Community Event (Emerald) */}
+            <div className="bg-white border border-[#E7E5E4] rounded-2xl p-5 shadow-[0_2px_8px_-1px_rgba(0,0,0,0.03),0_8px_16px_-4px_rgba(0,0,0,0.015)] text-left hover:border-emerald-200 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.05)] hover:-translate-y-0.5">
+              <div className="flex gap-2.5 items-center mb-3">
+                <div className="w-8 h-8 rounded-full bg-stone-100 flex items-center justify-center font-bold text-[#78716C] text-[10px] border border-[#E7E5E4] shadow-sm">
+                  PS
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold text-[#1C1917] flex items-center gap-1.5">
+                    Priya Sharma
+                  </h4>
+                  <p className="text-[10px] text-[#78716C] font-medium">Bandra West • 5 hrs ago</p>
+                </div>
+              </div>
+              <div className="space-y-2.5">
+                <div className="flex items-center justify-between">
+                  <span className="inline-block px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 text-[8px] font-bold border border-emerald-100 uppercase tracking-wide">
+                    RSVP Event
+                  </span>
+                  <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50/50 border border-emerald-100 px-2 py-0.5 rounded-full">
+                    18 attending
+                  </span>
+                </div>
+                <h3 className="text-sm font-extrabold text-[#1C1917]">Sunday Society Clean-Up & Tree Plantation</h3>
+                <p className="text-xs text-[#78716C] leading-relaxed">
+                  Join us this Sunday at 8 AM in the East Lawn. Saplings and tools will be provided. Light breakfast afterwards!
+                </p>
+                
+                {/* Generated event image display */}
+                <div className="mt-3 overflow-hidden rounded-xl border border-stone-200/60 max-h-48 w-full bg-stone-50/50 flex justify-center items-center">
+                  <img 
+                    src="/gardening_event_preview.png" 
+                    alt="Gardening drive" 
+                    className="w-full object-cover max-h-48 aspect-video"
+                  />
+                </div>
+              </div>
+              <div className="mt-4 pt-3 border-t border-stone-100 flex items-center gap-6 text-stone-400 text-xs font-bold">
+                <span className="flex items-center gap-1.5 hover:text-red-500 transition-colors"><Heart size={14} /> 28</span>
+                <span className="flex items-center gap-1.5 hover:text-stone-700 transition-colors"><MessageSquare size={14} /> 14</span>
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* ─── Features Grid ─── */}
-      <section className="bg-white py-16 px-6 border-t border-stone-200/60 shadow-inner">
-        <div className="max-w-5xl mx-auto">
+      {/* ─── Product Pillars (Notion-inspired Grid - Wide Layout) ─── */}
+      <section className="bg-white py-24 px-6 border-b border-[#E7E5E4] w-full">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-10">
           
-          <div className="text-center max-w-xl mx-auto mb-12">
-            <h2 className="text-2xl font-extrabold text-stone-850 tracking-tight">
-              Platform Features
+          <div className="text-left max-w-2xl mb-16">
+            <h2 className="text-3xl font-extrabold text-[#1C1917] tracking-tight">
+              Built for real local needs
             </h2>
-            <p className="mt-2.5 text-xs sm:text-sm text-stone-500 leading-relaxed">
-              Explore how NeighbourHub connects you with key utilities, community members, and immediate local notices.
+            <p className="mt-3 text-[15px] text-[#78716C] leading-relaxed font-medium">
+              No global noise, no algorithms. Just the utility, notices, and interactions that shape your immediate surroundings.
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {[
-              {
-                icon: MapPin,
-                color: 'text-primary-600 bg-primary-50 border-primary-100',
-                title: 'Distance-Based Scoping',
-                desc: 'Target posts dynamically! Choose to spread your notices within 5 km, 10 km, or to the entire city, state, or country level.'
-              },
-              {
-                icon: ShieldAlert,
-                color: 'text-red-600 bg-red-50 border-red-100',
-                title: 'Verified Emergency Alerts',
-                desc: 'Admins and moderators can post critical emergency alerts that pin to the top of the feed and send instant notification flags.'
-              },
-              {
-                icon: Calendar,
-                color: 'text-green-600 bg-green-50 border-green-100',
-                title: 'Community Events',
-                desc: 'Plan physical neighborhood events, set maximum attendee limits, track RSVP checklists, and list coordinates/venues.'
-              },
-              {
-                icon: Store,
-                color: 'text-amber-600 bg-amber-50 border-amber-100',
-                title: 'Business Directory',
-                desc: 'Showcase local stores, services, and community listings to gain nearby visibility, exclusively for registered business accounts.'
-              },
-              {
-                icon: Users,
-                color: 'text-indigo-650 bg-indigo-50 border-indigo-100',
-                title: 'Verified Neighborhoods',
-                desc: 'Automatically connects you to your exact local society or neighborhood based on GPS coordinates resolved during registration.'
-              },
-              {
-                icon: MessageSquare,
-                color: 'text-purple-650 bg-purple-50 border-purple-100',
-                title: 'Consensus Polls',
-                desc: 'Resolve neighborhood decisions instantly. Create polls with support for anonymous and public voting configurations.'
-              }
-            ].map((feature, idx) => (
-              <div 
-                key={idx} 
-                className="p-5 rounded-xl border border-stone-200/80 bg-stone-50/50 hover:bg-stone-50/90 transition-all flex flex-col gap-3 text-left"
-              >
-                <div className={`w-9 h-9 rounded-lg border flex items-center justify-center flex-shrink-0 ${feature.color}`}>
-                  <feature.icon size={16} />
-                </div>
-                <h3 className="text-xs sm:text-sm font-bold text-stone-850">
-                  {feature.title}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            
+            {/* Feature 1: Scoped Feed */}
+            <div className="p-6 border border-[#E7E5E4] rounded-2xl bg-[#FAFAF9] flex flex-col justify-between text-left min-h-[180px] shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <MapPin size={18} className="text-[#2563EB] mb-4" />
+                <h3 className="text-xs font-bold text-[#1C1917] uppercase tracking-widest mb-1.5">
+                  Location Scoping
                 </h3>
-                <p className="text-[11px] text-stone-500 leading-relaxed">
-                  {feature.desc}
+                <p className="text-xs text-[#78716C] leading-relaxed font-medium">
+                  Choose the radius of your posts. Keep it inside your society gates, or spread it to nearby blocks.
                 </p>
               </div>
-            ))}
-          </div>
+            </div>
 
-        </div>
-      </section>
-
-      {/* ─── Security Row ─── */}
-      <section className="py-16 px-6 max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10">
-        <div className="max-w-md text-left space-y-3.5">
-          <div className="w-9 h-9 rounded-lg bg-primary-50 border border-primary-100 text-primary-650 flex items-center justify-center shadow-sm">
-            <ShieldCheck size={18} />
-          </div>
-          <h2 className="text-2xl font-extrabold text-stone-850 tracking-tight leading-tight">
-            Safety & Verification <br /> Are Our Priorities
-          </h2>
-          <p className="text-xs sm:text-xs text-stone-500 leading-relaxed">
-            Every user account belongs to a verified email address. Registration verification ensures that trolls cannot abuse the platform, keeping the localized neighborhood feeds secure and constructive.
-          </p>
-        </div>
-        <div className="w-full max-w-sm bg-white border border-stone-200 p-5 rounded-xl flex flex-col gap-3.5 text-left shadow-sm">
-          <h4 className="text-[10px] font-bold text-stone-400 uppercase tracking-wider">How to join:</h4>
-          {[
-            { step: '1', title: 'Fill Registration', desc: 'Enter your name, email, credentials, and select your location.' },
-            { step: '2', title: 'Verify Email', desc: 'Enter the OTP code received in your email inbox.' },
-            { step: '3', title: 'Start Exploring', desc: 'Read community posts, check local events, and write scoped notices.' }
-          ].map((item, idx) => (
-            <div key={idx} className="flex gap-3">
-              <div className="w-5 h-5 rounded-full bg-stone-100 border border-stone-200 flex items-center justify-center text-[10px] font-bold text-stone-600 flex-shrink-0">
-                {item.step}
-              </div>
+            {/* Feature 2: Emergency Alerts */}
+            <div className="p-6 border border-[#E7E5E4] rounded-2xl bg-[#FAFAF9] flex flex-col justify-between text-left min-h-[180px] shadow-sm hover:shadow-md transition-all duration-300">
               <div>
-                <h5 className="text-xs font-bold text-stone-800">{item.title}</h5>
-                <p className="text-[10px] text-stone-400 mt-0.5">{item.desc}</p>
+                <ShieldCheck size={18} className="text-red-500 mb-4" />
+                <h3 className="text-xs font-bold text-[#1C1917] uppercase tracking-widest mb-1.5">
+                  RWA Verification
+                </h3>
+                <p className="text-xs text-[#78716C] leading-relaxed font-medium">
+                  Verified administrators publish emergency notices that bypass standard feeds to grab immediate attention.
+                </p>
               </div>
             </div>
-          ))}
+
+            {/* Feature 3: Community Events */}
+            <div className="p-6 border border-[#E7E5E4] rounded-2xl bg-[#FAFAF9] flex flex-col justify-between text-left min-h-[180px] shadow-sm hover:shadow-md transition-all duration-300">
+              <div>
+                <Calendar size={18} className="text-emerald-600 mb-4" />
+                <h3 className="text-xs font-bold text-[#1C1917] uppercase tracking-widest mb-1.5">
+                  Society Events
+                </h3>
+                <p className="text-xs text-[#78716C] leading-relaxed font-medium">
+                  Create clean meetups, handle attendee lists, and coordinate local neighborhood initiatives.
+                </p>
+              </div>
+            </div>
+
+            {/* Feature 4: Local Businesses (Amber - #F59E0B) */}
+            <div className="p-6 border border-[#E7E5E4] rounded-2xl bg-[#FAFAF9] flex flex-col justify-between text-left min-h-[180px] shadow-sm hover:shadow-md transition-all duration-300 border-l-2 border-l-[#F59E0B]">
+              <div>
+                <Store size={18} className="text-[#F59E0B] mb-4" />
+                <h3 className="text-xs font-bold text-[#1C1917] uppercase tracking-widest mb-1.5">
+                  Business Directory
+                </h3>
+                <p className="text-xs text-[#78716C] leading-relaxed font-medium">
+                  Support local vendors, home-bakers, and nearby service providers, highlighting direct community deals.
+                </p>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </section>
 
-      {/* ─── Footer ─── */}
-      <footer className="mt-auto bg-white border-t border-stone-200/80 py-8 px-6 text-center text-stone-400 shadow-inner">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5 text-[11px] font-semibold">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-lg bg-primary-650 flex items-center justify-center text-white font-extrabold text-xs">
+      {/* ─── Call to Action (Single Job: Sign Up) ─── */}
+      <section className="bg-[#FAFAF9] py-24 px-6 text-center w-full">
+        <div className="max-w-2xl mx-auto space-y-6">
+          <h2 className="text-3xl md:text-4xl font-extrabold text-[#1C1917] tracking-tight">
+            Ready to join your neighbors?
+          </h2>
+          <p className="text-[15px] text-[#78716C] leading-relaxed max-w-md mx-auto font-medium">
+            Sign up takes less than 2 minutes. Enter your society location, verify your email, and instantly connect to your local feed.
+          </p>
+          <div className="pt-3">
+            {isAuthenticated ? (
+              <button 
+                onClick={() => navigate('/feed')}
+                className="btn-primary py-3.5 px-8 text-sm font-bold shadow-md hover:shadow-lg"
+              >
+                Go to Feed Layout <ArrowRight size={14} className="ml-1" />
+              </button>
+            ) : (
+              <Link 
+                to="/register"
+                className="btn-primary py-3.5 px-8 text-sm font-bold shadow-md hover:shadow-lg"
+              >
+                Create Your Free Account <ArrowRight size={14} className="ml-1" />
+              </Link>
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* ─── Footer (Wide Layout) ─── */}
+      <footer className="mt-auto bg-[#FAFAF9] border-t border-[#E7E5E4] py-10 px-6 text-center text-[#78716C] w-full">
+        <div className="max-w-[1440px] mx-auto px-6 lg:px-10 flex flex-col sm:flex-row items-center justify-between gap-5 text-xs font-semibold">
+          <div className="flex items-center gap-2 select-none">
+            <div className="w-6 h-6 rounded-md bg-[#2563EB] flex items-center justify-center text-white font-extrabold text-[11px] shadow-sm">
               N
             </div>
-            <span className="font-bold text-stone-700">
+            <span className="font-bold text-[#1C1917]">
               NeighbourHub &copy; {new Date().getFullYear()}
             </span>
           </div>
-          <div className="flex gap-3.5">
-            <a href="#" className="hover:text-stone-650 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-stone-650 transition-colors">Terms of Service</a>
-            <span className="flex items-center gap-1 text-[10px] text-stone-400">
-              Made with <Heart size={9} className="text-red-500" /> for community safety
+          <div className="flex gap-4.5">
+            <a href="#" className="hover:text-[#1C1917] transition-colors duration-150">Privacy Policy</a>
+            <a href="#" className="hover:text-[#1C1917] transition-colors duration-150">Terms of Service</a>
+            <span className="flex items-center gap-1.5 text-[11px] text-[#78716C]">
+              Made with <Heart size={11} className="text-red-500 fill-red-500" /> for community safety
             </span>
           </div>
         </div>

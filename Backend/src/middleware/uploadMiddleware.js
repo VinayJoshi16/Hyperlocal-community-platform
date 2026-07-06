@@ -21,16 +21,23 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // limit to 5MB
+  limits: { fileSize: 50 * 1024 * 1024 }, // limit to 50MB for video/file capability
   fileFilter: function (req, file, cb) {
-    const filetypes = /jpeg|jpg|png|webp|gif/;
-    const mimetype = filetypes.test(file.mimetype);
+    const filetypes = /jpeg|jpg|png|webp|gif|mp4|webm|mov|avi|pdf|doc|docx|xls|xlsx|txt|zip/;
+    const mimetype = filetypes.test(file.mimetype) || 
+                     file.mimetype.startsWith('video/') || 
+                     file.mimetype.startsWith('image/') ||
+                     file.mimetype === 'application/pdf' ||
+                     file.mimetype.includes('msword') ||
+                     file.mimetype.includes('officedocument') ||
+                     file.mimetype.includes('text/') ||
+                     file.mimetype.includes('zip');
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     
-    if (mimetype && extname) {
+    if (mimetype || extname) {
       return cb(null, true);
     }
-    cb(new Error('Only images (jpg, jpeg, png, webp, gif) are allowed!'));
+    cb(new Error('File type not supported. Allowed formats: images, videos (mp4/webm/mov), and documents (pdf/doc/xls/txt/zip).'));
   }
 });
 

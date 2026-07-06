@@ -15,6 +15,8 @@ const createPostSchema = z.object({
   title: z.string().max(160).optional(),
   body: z.string().min(1, 'Post body cannot be empty').max(5000),
   mediaUrls: z.array(z.string()).max(6).optional(),
+  videoUrls: z.array(z.string()).max(3).optional(),
+  fileUrls: z.array(z.string()).max(5).optional(),
   isEmergency: z.boolean().optional(),
   expiresAt: z.string().datetime().optional(),
   spreadRadius: z.number().int().positive().optional(),
@@ -80,10 +82,6 @@ const createPost = asyncHandler(async (req, res) => {
     return fail(res, 'Only society admins can post official notices.', 403);
   }
 
-  if (data.type === 'emergency' && !['admin', 'moderator'].includes(req.user.role)) {
-    return fail(res, 'Only admins or moderators can post emergency alerts.', 403);
-  }
-
   const post = await postModel.createPost({
     authorId: req.user.id,
     locationId: data.locationId,
@@ -91,6 +89,8 @@ const createPost = asyncHandler(async (req, res) => {
     title: data.title,
     body: data.body,
     mediaUrls: data.mediaUrls || [],
+    videoUrls: data.videoUrls || [],
+    fileUrls: data.fileUrls || [],
     isEmergency: data.type === 'emergency' || data.isEmergency || false,
     expiresAt: data.expiresAt || null,
     geoPoint: data.geoPoint || null,

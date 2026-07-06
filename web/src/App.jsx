@@ -25,7 +25,7 @@ function ProtectedRoute({ children }) {
   const isAuthenticated = useSelector(selectIsAuthenticated)
   const isLoading       = useSelector(selectAuthLoading)
   if (isLoading)        return <SplashScreen />
-  if (!isAuthenticated) return <Navigate to="/login" replace />
+  if (!isAuthenticated) return <Navigate to="/" replace />
   return children
 }
 

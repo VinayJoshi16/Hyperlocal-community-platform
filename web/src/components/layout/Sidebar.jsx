@@ -16,7 +16,7 @@ const POST_TYPES = [
   { type: 'lost_found',   label: 'Lost & Found',     icon: Search },
   { type: 'business',     label: 'Local businesses', icon: Briefcase },
   { type: 'poll',         label: 'Polls',            icon: BarChart2 },
-  { type: 'emergency',    label: 'Alerts',           icon: AlertTriangle },
+  { type: 'emergency',    label: 'Emergency',        icon: AlertTriangle },
 ]
 
 export default function Sidebar() {
@@ -38,35 +38,35 @@ export default function Sidebar() {
       {/* Create post button */}
       <button
         onClick={() => dispatch(setCreatePostOpen(true))}
-        className="btn-primary w-full justify-center gap-2"
+        className="btn-primary w-full py-3.5 px-4 justify-center gap-2 rounded-xl shadow-md hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 ease-out"
       >
-        <Plus size={16} />
-        New post
+        <Plus size={16} className="stroke-[2.5]" />
+        New Post
       </button>
 
       {/* Feed type filters */}
       <div>
-        <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2 px-2">
+        <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3 px-2">
           Browse
         </p>
-        <ul className="flex flex-col gap-0.5">
+        <ul className="flex flex-col gap-1">
           {POST_TYPES.map(({ type, label, icon: Icon }) => {
             const isActive = feedFilter === type
             return (
               <li key={type}>
                 <button
                   onClick={() => handleFilterClick(type)}
-                  className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg
-                              text-sm font-medium transition-colors text-left
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                              text-sm font-semibold transition-all duration-150 text-left
                               ${isActive
-                                ? 'bg-primary-50 text-primary-700'
-                                : 'text-stone-600 hover:bg-stone-100 hover:text-stone-800'
+                                ? 'bg-primary-50 text-primary-700 font-bold'
+                                : 'text-stone-600 hover:bg-stone-100/70 hover:text-stone-850'
                               }`}
                 >
-                  <Icon size={16} className={isActive ? 'text-primary-600' : 'text-stone-400'} />
+                  <Icon size={17} className={isActive ? 'text-primary-600' : 'text-stone-400'} />
                   {label}
                   {type === 'emergency' && (
-                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
+                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500 animate-pulse" />
                   )}
                 </button>
               </li>
@@ -80,23 +80,23 @@ export default function Sidebar() {
       {/* My communities */}
       {myLocations.length > 0 && (
         <div>
-          <p className="text-xs font-semibold text-stone-400 uppercase tracking-wider mb-2 px-2">
-            My communities
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3 px-2">
+            My Communities
           </p>
-          <ul className="flex flex-col gap-0.5">
+          <ul className="flex flex-col gap-1">
             {myLocations.map((loc) => {
               const isActive = activeLocation?.id === loc.id
               return (
                 <li key={loc.id}>
-                  <button className={`w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg
-                                      text-sm transition-colors text-left
+                  <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                                      text-sm transition-all duration-150 text-left
                                       ${isActive
-                                        ? 'bg-stone-100 text-stone-800 font-medium'
-                                        : 'text-stone-500 hover:bg-stone-50 hover:text-stone-700'
+                                        ? 'bg-stone-100 text-stone-800 font-bold'
+                                        : 'text-stone-550 hover:bg-stone-50 hover:text-stone-750'
                                       }`}>
-                    <MapPin size={14} className={isActive ? 'text-primary-500' : 'text-stone-300'} />
+                    <MapPin size={15} className={isActive ? 'text-primary-500' : 'text-stone-350'} />
                     <span className="truncate">{loc.name}</span>
-                    <span className="ml-auto text-xs text-stone-300 capitalize flex-shrink-0">
+                    <span className="ml-auto text-[9px] font-bold tracking-wide text-stone-400 uppercase flex-shrink-0">
                       {loc.type}
                     </span>
                   </button>

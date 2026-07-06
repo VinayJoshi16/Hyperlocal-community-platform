@@ -26,19 +26,111 @@ async function resolveHierarchyFromPoint(lat, lng) {
     [lng, lat]
   );
 
-  if (pointMatch.rows.length === 0) {
-    const nearest = await query(
-      `SELECT * FROM locations
-       WHERE type = 'city' AND centroid IS NOT NULL
-       ORDER BY centroid <-> ST_SetSRID(ST_Point($1, $2), 4326)::geography
-       LIMIT 1`,
-      [lng, lat]
-    );
-    if (nearest.rows.length === 0) return [];
-    return walkUpHierarchy(nearest.rows[0]);
+  if (pointMatch.rows.length > 0) {
+    return walkUpHierarchy(pointMatch.rows[0]);
   }
 
-  return walkUpHierarchy(pointMatch.rows[0]);
+  // If no boundary matched, reverse-geocode using OpenStreetMap Nominatim
+  try {
+    const response = await fetch(
+      `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`,
+      {
+        headers: {
+          'User-Agent': 'NeighbourHub/1.0 (contact@neighbourhub.com)'
+        }
+      }
+    );
+    const data = await response.json();
+
+    if (data && data.address) {
+      const countryName = data.address.country || 'India';
+      const stateName = data.address.state || data.address.state_district || 'Maharashtra';
+      const cityName = data.address.city || data.address.town || data.address.village || data.address.suburb || 'Mumbai';
+      const areaName = data.address.neighbourhood || data.address.suburb || data.address.residential || cityName;
+
+      // Ensure hierarchy levels exist in locations database table
+      
+      // A. Country
+      let country = await query("SELECT * FROM locations WHERE name = $1 AND type = 'country'", [countryName]);
+      if (country.rows.length === 0) {
+        const insert = await query(
+          `INSERT INTO locations (name, type, centroid)
+           VALUES ($1, 'country', ST_SetSRID(ST_Point($2, $3), 4326)::geography)
+           RETURNING *`,
+          [countryName, lng, lat]
+        );
+        country = insert;
+      }
+      const countryId = country.rows[0].id;
+
+      // B. State
+      let state = await query("SELECT * FROM locations WHERE name = $1 AND type = 'state' AND parent_id = $2", [stateName, countryId]);
+      if (state.rows.length === 0) {
+        const insert = await query(
+          `INSERT INTO locations (parent_id, name, type, centroid)
+           VALUES ($1, $2, 'state', ST_SetSRID(ST_Point($3, $4), 4326)::geography)
+           RETURNING *`,
+          [countryId, stateName, lng, lat]
+        );
+        state = insert;
+      }
+      const stateId = state.rows[0].id;
+
+      // C. City
+      let city = await query("SELECT * FROM locations WHERE name = $1 AND type = 'city' AND parent_id = $2", [cityName, stateId]);
+      if (city.rows.length === 0) {
+        const insert = await query(
+          `INSERT INTO locations (parent_id, name, type, centroid)
+           VALUES ($1, $2, 'city', ST_SetSRID(ST_Point($3, $4), 4326)::geography)
+           RETURNING *`,
+          [stateId, cityName, lng, lat]
+        );
+        city = insert;
+      }
+      const cityId = city.rows[0].id;
+
+      // D. Area
+      let area = await query("SELECT * FROM locations WHERE name = $1 AND type = 'area' AND parent_id = $2", [areaName, cityId]);
+      if (area.rows.length === 0) {
+        const insert = await query(
+          `INSERT INTO locations (parent_id, name, type, centroid)
+           VALUES ($1, $2, 'area', ST_SetSRID(ST_Point($3, $4), 4326)::geography)
+           RETURNING *`,
+          [cityId, areaName, lng, lat]
+        );
+        area = insert;
+      }
+      const areaId = area.rows[0].id;
+
+      // E. Default Society under this area
+      const societyName = `${areaName} Residents Association`;
+      let society = await query("SELECT * FROM locations WHERE name = $1 AND type = 'society' AND parent_id = $2", [societyName, areaId]);
+      if (society.rows.length === 0) {
+        const insert = await query(
+          `INSERT INTO locations (parent_id, name, type, centroid)
+           VALUES ($1, $2, 'society', ST_SetSRID(ST_Point($3, $4), 4326)::geography)
+           RETURNING *`,
+          [areaId, societyName, lng, lat]
+        );
+        society = insert;
+      }
+
+      return walkUpHierarchy(society.rows[0]);
+    }
+  } catch (err) {
+    console.error('Nominatim Geocoding Failed:', err.message);
+  }
+
+  // Fallback to nearest city if geocoding failed/offline
+  const nearest = await query(
+    `SELECT * FROM locations
+     WHERE type = 'city' AND centroid IS NOT NULL
+     ORDER BY centroid <-> ST_SetSRID(ST_Point($1, $2), 4326)::geography
+     LIMIT 1`,
+    [lng, lat]
+  );
+  if (nearest.rows.length === 0) return [];
+  return walkUpHierarchy(nearest.rows[0]);
 }
 
 async function walkUpHierarchy(startLocation) {

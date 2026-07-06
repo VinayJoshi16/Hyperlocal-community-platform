@@ -6,15 +6,15 @@ const { query } = require('../config/db');
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
 
-async function createPost({ authorId, locationId, type, title, body, mediaUrls, isEmergency, isPinned, geoPoint, expiresAt, spreadRadius }) {
+async function createPost({ authorId, locationId, type, title, body, mediaUrls, videoUrls, fileUrls, isEmergency, isPinned, geoPoint, expiresAt, spreadRadius }) {
   const res = await query(
     `INSERT INTO posts
-       (author_id, location_id, type, title, body, media_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8,
-       CASE WHEN $9::text IS NOT NULL
-            THEN ST_SetSRID(ST_GeomFromGeoJSON($9), 4326)::geography
+       (author_id, location_id, type, title, body, media_urls, video_urls, file_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
+       CASE WHEN $11::text IS NOT NULL
+            THEN ST_SetSRID(ST_GeomFromGeoJSON($11), 4326)::geography
             ELSE NULL END,
-       $10, $11)
+       $12, $13)
      RETURNING *`,
     [
       authorId,
@@ -23,6 +23,8 @@ async function createPost({ authorId, locationId, type, title, body, mediaUrls, 
       title || null,
       body,
       mediaUrls || [],
+      videoUrls || [],
+      fileUrls || [],
       isEmergency || false,
       isPinned || false,
       geoPoint ? JSON.stringify(geoPoint) : null,

@@ -116,7 +116,7 @@ export default function ProfilePage() {
 
   const handleSignOut = () => {
     dispatch(logout())
-    navigate('/login')
+    navigate('/')
   }
 
   return (

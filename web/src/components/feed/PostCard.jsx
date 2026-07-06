@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { 
   Heart, MessageCircle, Pin, Calendar, MapPin, 
-  Users, Check, Clock, AlertTriangle, ArrowRight 
+  Users, Check, Clock, AlertTriangle, ArrowRight, X, Maximize2 
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -30,6 +30,7 @@ export default function PostCard({ post }) {
   const navigate = useNavigate()
   const dispatch = useDispatch()
   const [postState, setPostState] = useState(post)
+  const [lightboxMedia, setLightboxMedia] = useState(null)
 
   // Keep local state in sync when prop updates
   useEffect(() => {
@@ -114,71 +115,71 @@ export default function PostCard({ post }) {
   return (
     <div 
       onClick={() => navigate(`/posts/${postState.id}`)}
-      className={`card p-5 border cursor-pointer hover:border-stone-300 transition-all ${
+      className={`card p-6 border cursor-pointer hover:border-stone-300 transition-all ${
         isEmergency 
-          ? 'bg-red-50/50 border-red-200 hover:border-red-300 left-border-emergency' 
-          : 'bg-white border-stone-200'
+          ? 'bg-red-50/40 border-red-200/90 hover:border-red-300 left-border-emergency' 
+          : 'bg-white border-stone-200/80'
       }`}
     >
       {/* Pinned label */}
       {postState.is_pinned && (
-        <div className="flex items-center gap-1 text-xs text-primary-600 font-semibold mb-2.5">
-          <Pin size={12} className="rotate-45" />
+        <div className="flex items-center gap-1.5 text-xs text-primary-600 font-bold mb-3">
+          <Pin size={12} className="rotate-45 text-primary-500 fill-primary-500" />
           <span>Pinned by Admin</span>
         </div>
       )}
 
       {/* Header section */}
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           {postState.author_avatar ? (
             <img 
               src={postState.author_avatar} 
-              className="w-9 h-9 rounded-full object-cover border border-stone-100 flex-shrink-0"
+              className="w-11 h-11 rounded-full object-cover border border-stone-100 flex-shrink-0 shadow-sm"
               alt={postState.author_name} 
             />
           ) : (
-            <div className="w-9 h-9 rounded-full bg-primary-50 text-primary-700 flex items-center justify-center font-bold text-sm flex-shrink-0">
+            <div className="w-11 h-11 rounded-full bg-primary-50 text-primary-700 flex items-center justify-center font-bold text-sm flex-shrink-0 shadow-sm">
               {postState.author_name?.[0]?.toUpperCase() || 'U'}
             </div>
           )}
-          <div>
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-sm font-semibold text-stone-800">{postState.author_name}</span>
+          <div className="text-left">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[14px] font-bold text-stone-850">{postState.author_name}</span>
               {postState.author_role && postState.author_role !== 'user' && (
-                <span className={`px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider ${
+                <span className={`px-1.5 py-0.5 rounded text-[8px] font-extrabold uppercase tracking-wider ${
                   postState.author_role === 'admin' 
-                    ? 'bg-red-100 text-red-800' 
+                    ? 'bg-red-50 text-red-700 border border-red-100' 
                     : postState.author_role === 'moderator'
-                    ? 'bg-purple-100 text-purple-800'
-                    : 'bg-amber-100 text-amber-800'
+                    ? 'bg-purple-50 text-purple-700 border border-purple-100'
+                    : 'bg-amber-50 text-amber-700 border border-amber-100'
                 }`}>
                   {postState.author_role}
                 </span>
               )}
             </div>
-            <div className="flex items-center gap-1.5 text-xs text-stone-400 mt-0.5">
+            <div className="flex items-center gap-1.5 text-xs text-stone-400 mt-0.5 font-medium">
               <span>{formatTime(postState.created_at)}</span>
               <span>•</span>
-              <span className="font-medium text-stone-500">{postState.location_name}</span>
+              <span className="font-semibold text-stone-500">{postState.location_name}</span>
             </div>
           </div>
         </div>
 
         {/* Post Type Badge */}
-        <span className={`badge ${typeConfig.className} px-2.5 py-0.5 rounded-full text-xs font-semibold`}>
+        <span className={`badge ${typeConfig.className} px-3 py-1 rounded-full text-[11px] font-bold border border-stone-200/20`}>
           {typeConfig.label}
         </span>
       </div>
 
       {/* Main post contents */}
-      <div className="mt-4">
+      <div className="mt-4.5 text-left">
         {postState.title && (
-          <h2 className="text-base font-bold text-stone-900 mb-1.5">
+          <h2 className="text-[17px] font-extrabold text-stone-850 leading-snug mb-2">
             {postState.title}
           </h2>
         )}
-        <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-wrap line-clamp-3">
+        <p className="text-[15px] text-stone-600 leading-relaxed whitespace-pre-wrap line-clamp-3 font-normal">
           {renderBodyWithLinks(postState.body)}
         </p>
         {postState.media_urls && postState.media_urls.length > 0 && (() => {
@@ -187,23 +188,75 @@ export default function PostCard({ post }) {
           const isSquare = imgUrl.endsWith('#square')
           
           return (
-            <div className={`mt-3 overflow-hidden rounded-xl border border-stone-200 bg-stone-50/30 flex justify-center items-center ${
-              isSquare ? 'max-w-xs mx-auto aspect-square' : 'max-h-72 w-full'
+            <div className={`mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/20 flex justify-center items-center ${
+              isSquare ? 'max-w-sm mx-auto aspect-square' : 'max-h-96 w-full'
             }`}>
               <img 
                 src={imgUrl} 
                 alt="Post Attachment" 
-                className={`w-full ${
+                onClick={(e) => {
+                  e.stopPropagation()
+                  setLightboxMedia({ type: 'image', url: imgUrl })
+                }}
+                className={`w-full cursor-zoom-in ${
                   isContain 
-                    ? 'object-contain max-h-72 bg-stone-100/60 p-1.5' 
+                    ? 'object-contain max-h-96 bg-stone-100/40 p-2' 
                     : isSquare 
                     ? 'object-cover aspect-square' 
-                    : 'object-cover aspect-video max-h-72'
+                    : 'object-cover aspect-video max-h-96'
                 }`} 
               />
             </div>
           )
         })()}
+
+        {/* Video Attachments */}
+        {postState.video_urls && postState.video_urls.length > 0 && (
+          <div className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-stone-950 flex justify-center items-center max-h-[400px] w-full shadow-sm relative group">
+            <video 
+              src={postState.video_urls[0]} 
+              controls 
+              className="w-full max-h-[400px] object-contain"
+            />
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation()
+                setLightboxMedia({ type: 'video', url: postState.video_urls[0] })
+              }}
+              className="absolute top-3 right-3 bg-black/60 hover:bg-black/85 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider shadow-md"
+            >
+              <Maximize2 size={12} />
+              Full Screen
+            </button>
+          </div>
+        )}
+
+        {/* Document File Attachments */}
+        {postState.file_urls && postState.file_urls.length > 0 && (
+          <div className="mt-4 space-y-2 select-none">
+            {postState.file_urls.map((url, idx) => {
+              const fileName = url.substring(url.lastIndexOf('-') + 1) || url.substring(url.lastIndexOf('/') + 1);
+              return (
+                <a
+                  key={idx}
+                  href={url}
+                  download
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center justify-between p-3.5 border border-stone-200/80 rounded-xl bg-[#FAFAF9]/40 hover:bg-stone-50/50 hover:border-stone-300 transition-all text-xs font-semibold text-stone-700"
+                >
+                  <div className="flex items-center gap-2.5 truncate">
+                    <FileText size={16} className="text-primary-650 flex-shrink-0" />
+                    <span className="truncate">{fileName}</span>
+                  </div>
+                  <span className="text-[10px] text-primary-600 hover:text-primary-750 font-bold uppercase tracking-wider flex-shrink-0">
+                    Download
+                  </span>
+                </a>
+              )
+            })}
+          </div>
+        )}
 
         {/* Type specific: EVENTS details */}
         {postState.type === 'event' && postState.event && (
@@ -315,22 +368,63 @@ export default function PostCard({ post }) {
       </div>
 
       {/* Footer / actions */}
-      <div className="mt-4 pt-3.5 border-t border-stone-100 flex items-center gap-6 text-stone-400 text-xs font-medium">
+      <div className="mt-5 pt-4 border-t border-stone-100/90 flex items-center gap-8 text-stone-400 text-xs font-bold select-none">
         <button 
           onClick={handleLike}
-          className={`flex items-center gap-1.5 transition-colors hover:text-red-500 ${
-            postState.has_reacted ? 'text-red-500 font-semibold' : ''
+          className={`flex items-center gap-2 transition-all hover:text-red-500 hover:scale-105 active:scale-95 ${
+            postState.has_reacted ? 'text-red-500 font-extrabold' : ''
           }`}
         >
-          <Heart size={16} fill={postState.has_reacted ? 'currentColor' : 'none'} />
+          <Heart size={17} fill={postState.has_reacted ? 'currentColor' : 'none'} className="transition-transform" />
           <span>{postState.reaction_count || 0}</span>
         </button>
 
-        <div className="flex items-center gap-1.5 hover:text-stone-600">
-          <MessageCircle size={16} />
+        <div className="flex items-center gap-2 hover:text-stone-700 transition-colors hover:scale-105 cursor-pointer">
+          <MessageCircle size={17} />
           <span>{postState.comment_count || 0}</span>
         </div>
       </div>
+
+      {/* Lightbox Modal overlay */}
+      {lightboxMedia && (
+        <div 
+          onClick={(e) => {
+            e.stopPropagation()
+            setLightboxMedia(null)
+          }}
+          className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200 select-none cursor-zoom-out"
+        >
+          <button 
+            onClick={(e) => {
+              e.stopPropagation()
+              setLightboxMedia(null)
+            }}
+            className="absolute top-4 right-4 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 p-2.5 rounded-full transition-all shadow-md"
+          >
+            <X size={20} />
+          </button>
+
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="max-w-5xl max-h-[85vh] w-full h-full flex items-center justify-center"
+          >
+            {lightboxMedia.type === 'image' ? (
+              <img 
+                src={lightboxMedia.url} 
+                alt="Enlarged view" 
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200" 
+              />
+            ) : (
+              <video 
+                src={lightboxMedia.url} 
+                controls 
+                autoPlay
+                className="max-w-full max-h-[85vh] object-contain rounded-lg shadow-2xl animate-in zoom-in-95 duration-200" 
+              />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
