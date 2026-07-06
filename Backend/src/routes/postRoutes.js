@@ -134,8 +134,8 @@ router.post('/', createPost);
 // DELETE /api/posts/:id
 router.delete('/:id', deletePost);
 
-// PATCH /api/posts/:id/pin  - admin or moderator only
-router.patch('/:id/pin', requireAdminOrModerator, togglePin);
+// PATCH /api/posts/:id/pin  - admin, moderator, or post author
+router.patch('/:id/pin', togglePin);
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 

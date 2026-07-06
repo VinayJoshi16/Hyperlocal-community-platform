@@ -455,7 +455,7 @@ export default function PostDetailPage() {
 
           {/* Admin / Owner Actions */}
           <div className="flex items-center gap-2">
-            {canModerate && (
+            {(isAuthor || canModerate) && (
               <button
                 onClick={handleTogglePin}
                 className={`p-1.5 border rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-colors ${

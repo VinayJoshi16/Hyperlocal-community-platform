@@ -173,7 +173,7 @@ export default function PostCard({ post }) {
       </div>
 
       {/* Main post contents */}
-      <div className="mt-4.5 text-left">
+      <div className="mt-5 text-left">
         {postState.title && (
           <h2 className="text-[17px] font-extrabold text-stone-850 leading-snug mb-2">
             {postState.title}

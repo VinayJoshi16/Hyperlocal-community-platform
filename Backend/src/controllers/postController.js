@@ -137,6 +137,13 @@ const deletePost = asyncHandler(async (req, res) => {
 const togglePin = asyncHandler(async (req, res) => {
   const post = await postModel.findById(req.params.id, req.user.id);
   if (!post) return fail(res, 'Post not found.', 404);
+
+  const isAuthor = post.author_id === req.user.id;
+  const isStaff = ['admin', 'moderator'].includes(req.user.role);
+  if (!isAuthor && !isStaff) {
+    return fail(res, 'You do not have permission to pin this post.', 403);
+  }
+
   const updated = await postModel.pinPost(req.params.id, !post.is_pinned);
   return ok(res, { post: updated });
 });

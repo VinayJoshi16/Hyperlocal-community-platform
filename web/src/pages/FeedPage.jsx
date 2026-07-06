@@ -72,6 +72,9 @@ export default function FeedPage() {
     ? posts
     : posts.filter((p) => p.type === feedFilter)
 
+  const pinnedPosts = filteredPosts.filter((p) => p.is_pinned)
+  const otherPosts = filteredPosts.filter((p) => !p.is_pinned)
+
   return (
     <div className="flex w-full gap-8 items-start">
       
@@ -106,20 +109,53 @@ export default function FeedPage() {
           className="mb-6"
         />
 
-        {/* Feed list with skeletons */}
-        <div className="space-y-5">
+        {/* Feed list with skeletons & pinned sections */}
+        <div>
           {isLoading && filteredPosts.length === 0 ? (
-            <>
+            <div className="space-y-5">
               <PostSkeleton />
               <PostSkeleton />
               <PostSkeleton />
-            </>
+            </div>
           ) : filteredPosts.length === 0 ? (
             <EmptyFeed filter={feedFilter} />
           ) : (
-            filteredPosts.map((post) => (
-              <PostCard key={post.id} post={post} />
-            ))
+            <div className="space-y-6">
+              
+              {/* Pinned Posts Section */}
+              {pinnedPosts.length > 0 && (
+                <div className="space-y-4 mb-8">
+                  <div className="flex items-center gap-2.5 px-1 select-none">
+                    <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                      📌 Pinned Posts
+                    </span>
+                    <div className="flex-1 h-[1px] bg-stone-200/60" />
+                  </div>
+                  <div className="space-y-5">
+                    {pinnedPosts.map((post) => (
+                      <PostCard key={`pinned-${post.id}`} post={post} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Feed/Recent Posts Divider */}
+              {pinnedPosts.length > 0 && otherPosts.length > 0 && (
+                <div className="flex items-center gap-2.5 px-1 select-none mt-8 mb-4">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest">
+                    Recent Activity
+                  </span>
+                  <div className="flex-1 h-[1px] bg-stone-200/60" />
+                </div>
+              )}
+
+              {/* Other/Recent Posts */}
+              <div className="space-y-5">
+                {otherPosts.map((post) => (
+                  <PostCard key={post.id} post={post} />
+                ))}
+              </div>
+            </div>
           )}
 
           {isLoadingMore && (
