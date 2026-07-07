@@ -6,7 +6,7 @@ import {
 } from 'lucide-react'
 import { selectIsAuthenticated } from '../redux/slices/authSlice'
 
-export default function LandingPage() {
+export default function LandingPage(){
   const navigate = useNavigate()
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
