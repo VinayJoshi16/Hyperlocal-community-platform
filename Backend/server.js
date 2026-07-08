@@ -8,6 +8,7 @@ const { Server } = require('socket.io');
 const app = require('./app');
 const config = require('./src/config/env');
 const { testConnection } = require('./src/config/db');
+const { startKeepAlive } = require('./src/utils/keepAlive');
 
 const server = http.createServer(app);
 
@@ -99,6 +100,9 @@ async function start() {
   ║  Sockets: Socket.io ready                ║
   ╚══════════════════════════════════════════╝
     `);
+    
+    // Start keep-alive ping on Render
+    startKeepAlive();
   });
 }
 
