@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { 
@@ -41,6 +41,104 @@ export default function RegisterPage() {
   // OTP Verification
   const [otpCode, setOtpCode] = useState('')
   const [verifying, setVerifying] = useState(false)
+
+  // Leaflet Interactive Map specific hooks & states
+  const [showMap, setShowMap] = useState(false)
+  const [leafletLoaded, setLeafletLoaded] = useState(false)
+  const [mapLocation, setMapLocation] = useState(null)
+  const [resolvingMapLoc, setResolvingMapLoc] = useState(false)
+  
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+  const mapInstance = useRef(null)
+
+  // Dynamic Leaflet asset loader
+  useEffect(() => {
+    if (!showMap || window.L) {
+      if (window.L) setLeafletLoaded(true)
+      return
+    }
+
+    // Load Leaflet CSS
+    const link = document.createElement('link')
+    link.rel = 'stylesheet'
+    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'
+    document.head.appendChild(link)
+
+    // Load Leaflet JS
+    const script = document.createElement('script')
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'
+    script.async = true
+    script.onload = () => {
+      setLeafletLoaded(true)
+    }
+    document.head.appendChild(script)
+
+    return () => {
+      // Keep loaded assets to avoid re-fetching on toggle
+    }
+  }, [showMap])
+
+  const resolveCoordinates = async (lat, lng) => {
+    setResolvingMapLoc(true)
+    setGpsError('')
+    try {
+      const result = await dispatch(setLocationFromGPS({ lat, lng }))
+      if (result.meta.requestStatus === 'fulfilled' && result.payload.length > 0) {
+        const primaryLoc = result.payload.find(l => l.is_primary) || result.payload[0]
+        setMapLocation(primaryLoc)
+      } else {
+        setMapLocation(null)
+      }
+    } catch (err) {
+      setMapLocation(null)
+    } finally {
+      setResolvingMapLoc(false)
+    }
+  }
+
+  // Initialize Leaflet map instance
+  useEffect(() => {
+    if (!leafletLoaded || !showMap || !mapRef.current || mapInstance.current) return
+
+    // Default center at Mumbai, India
+    const defaultCenter = [19.0596, 72.8295] 
+    
+    // Create Leaflet map
+    const map = window.L.map(mapRef.current).setView(defaultCenter, 12)
+    mapInstance.current = map
+
+    // Add OpenStreetMap tile layer
+    window.L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(map)
+
+    // Add draggable marker
+    const marker = window.L.marker(defaultCenter, { draggable: true }).addTo(map)
+    markerRef.current = marker
+
+    // Handle marker moves
+    const onMarkerMove = async () => {
+      const position = marker.getLatLng()
+      resolveCoordinates(position.lat, position.lng)
+    }
+    marker.on('dragend', onMarkerMove)
+
+    // Handle clicking map to set marker location
+    map.on('click', (e) => {
+      const { lat, lng } = e.latlng
+      marker.setLatLng([lat, lng])
+      resolveCoordinates(lat, lng)
+    })
+
+    // Run initial geocoding for center point
+    resolveCoordinates(defaultCenter[0], defaultCenter[1])
+
+    return () => {
+      map.remove()
+      mapInstance.current = null
+    }
+  }, [leafletLoaded, showMap])
 
   // Geolocation handling
   function handleUseGPS() {
@@ -189,6 +287,57 @@ export default function RegisterPage() {
                   </>
                 )}
               </button>
+
+              <button
+                type="button"
+                onClick={() => setShowMap(!showMap)}
+                className="w-full h-10 border border-stone-250 bg-white hover:bg-stone-50 rounded-xl text-xs font-bold text-stone-600 shadow-sm flex items-center justify-center gap-1.5 transition-all"
+              >
+                <MapPin size={13} className="text-stone-450" />
+                {showMap ? 'Hide Map Selector' : 'Select on Interactive Map'}
+              </button>
+
+              {showMap && (
+                <div className="space-y-3 p-3 bg-stone-50/50 border border-stone-200 rounded-xl text-left animate-in fade-in slide-in-from-top-2 duration-200">
+                  <span className="block text-[9px] font-bold text-stone-450 uppercase tracking-wide leading-relaxed">
+                    Drag the pin or click on the map to choose your location
+                  </span>
+                  
+                  <div 
+                    ref={mapRef} 
+                    className="w-full h-44 rounded-xl border border-stone-250 bg-stone-100 overflow-hidden shadow-inner z-10"
+                  />
+                  
+                  {/* Selected Location Summary */}
+                  {resolvingMapLoc ? (
+                    <div className="text-[11px] text-stone-400 font-semibold flex items-center gap-1.5 py-1">
+                      <Loader className="animate-spin text-stone-400" size={13} />
+                      Resolving coordinates...
+                    </div>
+                  ) : mapLocation ? (
+                    <div className="space-y-2.5">
+                      <div className="p-2.5 bg-primary-50/10 border border-primary-100 rounded-xl">
+                        <span className="block text-[8px] font-extrabold text-primary-500 uppercase tracking-wider">Detected Neighborhood</span>
+                        <span className="text-[11px] font-extrabold text-stone-850">{mapLocation.name}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedLocation(mapLocation)
+                          setStep('details')
+                        }}
+                        className="w-full btn-primary py-2 text-xs font-extrabold"
+                      >
+                        Confirm & Continue
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="text-[11px] text-amber-600 font-semibold py-1">
+                      * Please choose a location inside mapped regions or select manually.
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="relative flex py-1 items-center">
                 <div className="flex-grow border-t border-stone-150" />
