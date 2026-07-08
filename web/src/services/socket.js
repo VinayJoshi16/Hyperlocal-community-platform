@@ -6,7 +6,11 @@ import { io } from 'socket.io-client'
 import { store } from '../redux/store'
 import { addNewPost, setEmergencyAlert } from '../redux/slices/feedSlice'
 
-const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:5000' : window.location.origin
+const BACKEND_URL = import.meta.env.VITE_API_URL 
+  ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
+  : 'https://neighbourhub-backend.onrender.com'
+
+const SOCKET_URL = import.meta.env.DEV ? 'http://localhost:5000' : BACKEND_URL
 
 let socket = null
 

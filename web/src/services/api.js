@@ -4,7 +4,9 @@
 
 import axios from 'axios'
 
-const BASE_URL = '/api'
+const BASE_URL = import.meta.env.DEV 
+  ? '/api' 
+  : (import.meta.env.VITE_API_URL || 'https://neighbourhub-backend.onrender.com/api')
 
 const api = axios.create({
   baseURL: BASE_URL,
