@@ -43,10 +43,10 @@ async function resolveHierarchyFromPoint(lat, lng) {
     const data = await response.json();
 
     if (data && data.address) {
-      const countryName = data.address.country || 'India';
-      const stateName = data.address.state || data.address.state_district || 'Maharashtra';
-      const cityName = data.address.city || data.address.town || data.address.village || data.address.suburb || 'Mumbai';
-      const areaName = data.address.neighbourhood || data.address.suburb || data.address.residential || cityName;
+      const countryName = (data.address.country || 'India').substring(0, 120);
+      const stateName = (data.address.state || data.address.state_district || 'Maharashtra').substring(0, 120);
+      const cityName = (data.address.city || data.address.town || data.address.village || data.address.suburb || 'Mumbai').substring(0, 120);
+      const areaName = (data.address.neighbourhood || data.address.suburb || data.address.residential || cityName).substring(0, 120);
 
       // Ensure hierarchy levels exist in locations database table
       

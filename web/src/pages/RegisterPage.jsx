@@ -97,6 +97,43 @@ export default function RegisterPage() {
     }
   }
 
+  // Leaflet Map Search states & handler
+  const [mapSearchQuery, setMapSearchQuery] = useState('')
+  const [isMapSearching, setIsMapSearching] = useState(false)
+
+  const handleMapSearch = async () => {
+    if (!mapSearchQuery.trim()) return
+    setIsMapSearching(true)
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(mapSearchQuery.trim())}`,
+        {
+          headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+          }
+        }
+      )
+      const data = await response.json()
+      if (data && data.length > 0) {
+        const { lat, lon } = data[0]
+        const latNum = parseFloat(lat)
+        const lngNum = parseFloat(lon)
+
+        if (mapInstance.current && markerRef.current) {
+          mapInstance.current.setView([latNum, lngNum], 14)
+          markerRef.current.setLatLng([latNum, lngNum])
+          resolveCoordinates(latNum, lngNum)
+        }
+      } else {
+        toast.error('Location not found. Try searching for a different city or area.')
+      }
+    } catch (err) {
+      toast.error('Failed to search location.')
+    } finally {
+      setIsMapSearching(false)
+    }
+  }
+
   // Initialize Leaflet map instance
   useEffect(() => {
     if (!leafletLoaded || !showMap || !mapRef.current || mapInstance.current) return
@@ -133,6 +170,11 @@ export default function RegisterPage() {
 
     // Run initial geocoding for center point
     resolveCoordinates(defaultCenter[0], defaultCenter[1])
+
+    // Fix map rendering issues inside dynamic tabs/accordions
+    setTimeout(() => {
+      map.invalidateSize()
+    }, 150)
 
     return () => {
       map.remove()
@@ -300,9 +342,39 @@ export default function RegisterPage() {
               {showMap && (
                 <div className="space-y-3 p-3 bg-stone-50/50 border border-stone-200 rounded-xl text-left animate-in fade-in slide-in-from-top-2 duration-200">
                   <span className="block text-[9px] font-bold text-stone-450 uppercase tracking-wide leading-relaxed">
-                    Drag the pin or click on the map to choose your location
+                    Search your location & drag the pin to refine
                   </span>
                   
+                  {/* Map Search input */}
+                  <div className="flex gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute inset-y-0 left-0 pl-2.5 flex items-center pointer-events-none text-stone-400">
+                        <Search size={12} />
+                      </span>
+                      <input
+                        type="text"
+                        placeholder="Search area (e.g. Almora)"
+                        value={mapSearchQuery}
+                        onChange={(e) => setMapSearchQuery(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault()
+                            handleMapSearch()
+                          }
+                        }}
+                        className="input pl-8 py-1.5 h-8 text-[11px] bg-white border-stone-200"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleMapSearch}
+                      disabled={isMapSearching}
+                      className="btn-primary h-8 px-3 text-[11px] font-bold flex items-center justify-center gap-1 shadow-sm"
+                    >
+                      {isMapSearching ? <Loader className="animate-spin" size={11} /> : 'Search'}
+                    </button>
+                  </div>
+
                   <div 
                     ref={mapRef} 
                     className="w-full h-44 rounded-xl border border-stone-250 bg-stone-100 overflow-hidden shadow-inner z-10"
