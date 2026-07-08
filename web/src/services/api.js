@@ -16,6 +16,12 @@ const api = axios.create({
 // ─── Request interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
+    if (config.baseURL && config.url && config.url.startsWith('/')) {
+      if (config.baseURL.startsWith('http')) {
+        config.url = config.baseURL.replace(/\/$/, '') + config.url;
+        config.baseURL = ''; 
+      }
+    }
     const token = localStorage.getItem('accessToken')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
