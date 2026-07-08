@@ -5,8 +5,10 @@
 import axios from 'axios'
 
 const BASE_URL = import.meta.env.DEV 
-  ? '/api' 
-  : (import.meta.env.VITE_API_URL || 'https://neighbourhub-backend.onrender.com/api')
+  ? '' 
+  : (import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
+      : 'https://neighbourhub-backend.onrender.com')
 
 const api = axios.create({
   baseURL: BASE_URL,
@@ -16,11 +18,9 @@ const api = axios.create({
 // ─── Request interceptor ──────────────────────────────────────────────────────
 api.interceptors.request.use(
   (config) => {
-    if (config.baseURL && config.url && config.url.startsWith('/')) {
-      if (config.baseURL.startsWith('http')) {
-        config.url = config.baseURL.replace(/\/$/, '') + config.url;
-        config.baseURL = ''; 
-      }
+    // Automatically prepend '/api' to all endpoint paths if not already present
+    if (config.url && config.url.startsWith('/') && !config.url.startsWith('/api')) {
+      config.url = '/api' + config.url
     }
     const token = localStorage.getItem('accessToken')
     if (token) {
