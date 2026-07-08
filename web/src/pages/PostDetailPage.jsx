@@ -17,7 +17,7 @@ import {
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
 
-import { selectUser } from '../redux/slices/AuthSlice'
+import { selectUser } from '../redux/slices/authSlice'
 import { postsAPI } from '../services/api'
 import { renderBodyWithLinks } from '../utils/linkify'
 

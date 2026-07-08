@@ -10,7 +10,7 @@ import toast from 'react-hot-toast'
 
 import { createPost } from '../../redux/slices/feedSlice'
 import { selectActiveLocation, selectMyLocations } from '../../redux/slices/locationSlice'
-import { selectUser } from '../../redux/slices/AuthSlice'
+import { selectUser } from '../../redux/slices/authSlice'
 import { selectCreatePostOpen, setCreatePostOpen } from '../../redux/slices/uiSlice'
 import { postsAPI } from '../../services/api'
 

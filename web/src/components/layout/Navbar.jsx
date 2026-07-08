@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { Menu, MapPin, ChevronDown, User, LogOut } from 'lucide-react'
 
-import { selectUser, logout } from '../../redux/slices/AuthSlice'
+import { selectUser, logout } from '../../redux/slices/authSlice'
 import { selectActiveLocation, selectMyLocations,
          setActiveLocation } from '../../redux/slices/locationSlice'
 import { toggleSidebar } from '../../redux/slices/uiSlice'

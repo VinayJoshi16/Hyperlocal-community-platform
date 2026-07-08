@@ -11,7 +11,7 @@ import {
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-import { selectUser, updateProfile, logout } from '../redux/slices/AuthSlice'
+import { selectUser, updateProfile, logout } from '../redux/slices/authSlice'
 import { selectMyLocations } from '../redux/slices/locationSlice'
 import { postsAPI } from '../services/api'
 import PostCard from '../components/feed/PostCard'
