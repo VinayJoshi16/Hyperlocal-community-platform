@@ -11,9 +11,8 @@ function getTransporter() {
   if (transporter) return transporter;
 
   if (!config.email.user || !config.email.appPassword) {
-    throw new Error(
-      'EMAIL_USER or EMAIL_APP_PASSWORD missing in .env. See .env.example for setup instructions.'
-    );
+    console.warn('WARNING: EMAIL_USER or EMAIL_APP_PASSWORD is not configured. Email transporter will not send mail.');
+    return null;
   }
 
   transporter = nodemailer.createTransport({
@@ -29,6 +28,12 @@ function getTransporter() {
 
 async function sendOtpEmail(toEmail, otpCode) {
   const mailer = getTransporter();
+  if (!mailer) {
+    console.log(`\n======================================================`);
+    console.log(`[TEST MODE] OTP code for ${toEmail} is: ${otpCode}`);
+    console.log(`======================================================\n`);
+    return;
+  }
 
   const html = `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
@@ -51,6 +56,10 @@ async function sendOtpEmail(toEmail, otpCode) {
 
 async function sendWelcomeEmail(toEmail, name) {
   const mailer = getTransporter();
+  if (!mailer) {
+    console.log(`[TEST MODE] Welcome email to ${toEmail} bypassed.`);
+    return;
+  }
 
   const html = `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
