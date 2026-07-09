@@ -9,6 +9,7 @@ const app = require('./app');
 const config = require('./src/config/env');
 const { testConnection } = require('./src/config/db');
 const { startKeepAlive } = require('./src/utils/keepAlive');
+const { runMigrations } = require('./migrations/run');
 
 const server = http.createServer(app);
 
@@ -86,6 +87,15 @@ async function start() {
       'Server startup aborted: could not connect to the database.\n' +
       'Check DATABASE_URL in your .env file.'
     );
+    process.exit(1);
+  }
+
+  // Run database migrations automatically
+  try {
+    console.log('Running startup database migrations...');
+    await runMigrations();
+  } catch (err) {
+    console.error('Database migration failed on startup:', err.message);
     process.exit(1);
   }
 

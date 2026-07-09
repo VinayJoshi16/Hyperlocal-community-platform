@@ -10,7 +10,8 @@ async function runMigrations() {
   const ok = await testConnection();
   if (!ok) {
     console.error('Cannot run migrations - database connection failed. Check DATABASE_URL in .env');
-    process.exit(1);
+    if (require.main === module) process.exit(1);
+    throw new Error('Database connection failed');
   }
 
   const dir = __dirname;
@@ -21,7 +22,8 @@ async function runMigrations() {
 
   if (files.length === 0) {
     console.log('No migration files found.');
-    process.exit(0);
+    if (require.main === module) process.exit(0);
+    return;
   }
 
   for (const file of files) {
@@ -33,13 +35,20 @@ async function runMigrations() {
     } catch (err) {
       console.error(`  failed: ${file}`);
       console.error(err.message);
-      process.exit(1);
+      if (require.main === module) process.exit(1);
+      throw err;
     }
   }
 
   console.log('All migrations completed successfully.');
-  await pool.end();
-  process.exit(0);
+  if (require.main === module) {
+    await pool.end();
+    process.exit(0);
+  }
 }
 
-runMigrations();
+if (require.main === module) {
+  runMigrations();
+}
+
+module.exports = { runMigrations };
