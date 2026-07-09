@@ -21,6 +21,9 @@ function getTransporter() {
       user: config.email.user,
       pass: config.email.appPassword,
     },
+    connectionTimeout: 4000,
+    greetingTimeout: 4000,
+    socketTimeout: 4000,
   });
 
   return transporter;
