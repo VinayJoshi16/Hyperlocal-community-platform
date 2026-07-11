@@ -21,7 +21,7 @@ export const createPost = createAsyncThunk(
   async (postData, { rejectWithValue }) => {
     try {
       const res = await postsAPI.createPost(postData)
-      return res.data.data.post
+      return res.data.data
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || 'Failed to create post')
     }
@@ -124,8 +124,16 @@ const feedSlice = createSlice({
       })
       .addCase(createPost.fulfilled, (state, action) => {
         state.isCreating = false
-        state.posts.unshift(action.payload)
-        toast.success('Post shared with your community.')
+        const { post, message } = action.payload
+        if (post && post.is_held_for_review) {
+          toast(message || 'Your post has been submitted and is held for moderation review.', {
+            icon: '⚠️',
+            duration: 6000
+          })
+        } else if (post) {
+          state.posts.unshift(post)
+          toast.success('Post shared with your community.')
+        }
       })
       .addCase(createPost.rejected, (state, action) => {
         state.isCreating = false
