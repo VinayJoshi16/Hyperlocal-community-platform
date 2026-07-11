@@ -1,6 +1,6 @@
 const config = require('../config/env');
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+const GEMINI_API_KEY = config.gemini.apiKey;
 
 /**
  * Generic helper to send requests to Gemini API

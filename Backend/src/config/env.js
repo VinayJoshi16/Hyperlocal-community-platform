@@ -53,6 +53,9 @@ const config = {
     s3Bucket: process.env.AWS_S3_BUCKET_NAME || '',
     sesFromEmail: process.env.AWS_SES_FROM_EMAIL || '',
   },
+  gemini: {
+    apiKey: process.env.GEMINI_API_KEY || null,
+  },
 };
 
 module.exports = config;
