@@ -6,15 +6,34 @@ const { query } = require('../config/db');
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
 
-async function createPost({ authorId, locationId, type, title, body, mediaUrls, videoUrls, fileUrls, isEmergency, isPinned, geoPoint, expiresAt, spreadRadius }) {
+async function createPost({ 
+  authorId, 
+  locationId, 
+  type, 
+  title, 
+  body, 
+  mediaUrls, 
+  videoUrls, 
+  fileUrls, 
+  isEmergency, 
+  isPinned, 
+  geoPoint, 
+  expiresAt, 
+  spreadRadius,
+  isHeldForReview = false,
+  moderationReason = null,
+  severity = null,
+  severityRationale = null,
+  aiRewriteCount = 0
+}) {
   const res = await query(
     `INSERT INTO posts
-       (author_id, location_id, type, title, body, media_urls, video_urls, file_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius)
+       (author_id, location_id, type, title, body, media_urls, video_urls, file_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius, is_held_for_review, moderation_reason, severity, severity_rationale, ai_rewrite_count)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
        CASE WHEN $11::text IS NOT NULL
             THEN ST_SetSRID(ST_GeomFromGeoJSON($11), 4326)::geography
             ELSE NULL END,
-       $12, $13)
+       $12, $13, $14, $15, $16, $17, $18)
      RETURNING *`,
     [
       authorId,
@@ -30,6 +49,11 @@ async function createPost({ authorId, locationId, type, title, body, mediaUrls, 
       geoPoint ? JSON.stringify(geoPoint) : null,
       expiresAt || null,
       spreadRadius || null,
+      isHeldForReview,
+      moderationReason,
+      severity,
+      severityRationale,
+      aiRewriteCount
     ]
   );
   return res.rows[0];
@@ -76,14 +100,14 @@ function getPostSelectFields(userIdParamNumber) {
                    GROUP BY option_index
                  ) v
                ) AS votes
-        FROM polls
-        WHERE polls.post_id = p.id
+         FROM polls
+         WHERE polls.post_id = p.id
       ) po_data
     ) AS poll
   `;
 }
 
-async function findById(id, userId = null) {
+async function findById(id, userId = null, includeHeld = false) {
   const fields = getPostSelectFields(userId ? 2 : null);
   const res = await query(
     `SELECT ${fields}
@@ -91,7 +115,8 @@ async function findById(id, userId = null) {
      JOIN users u ON u.id = p.author_id
      JOIN locations l ON l.id = p.location_id
      WHERE p.id = $1
-       AND (p.expires_at IS NULL OR p.expires_at > NOW())`,
+       AND (p.expires_at IS NULL OR p.expires_at > NOW())
+       ${includeHeld ? '' : 'AND p.is_held_for_review = FALSE'}`,
     userId ? [id, userId] : [id]
   );
   return res.rows[0] || null;
@@ -153,6 +178,7 @@ async function getFeedForUser(userId, { limit = 20, before, lat, lng } = {}) {
            )
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
        AND ($3::timestamptz IS NULL OR p.created_at < $3)
+       AND p.is_held_for_review = FALSE
      ORDER BY
        p.is_emergency DESC,
        p.is_pinned DESC,
@@ -173,6 +199,7 @@ async function getPostsByUser(userId, { limit = 20, before } = {}) {
      WHERE p.author_id = $1
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
        AND ($3::timestamptz IS NULL OR p.created_at < $3)
+       AND p.is_held_for_review = FALSE
      ORDER BY p.created_at DESC
      LIMIT $2`,
     [userId, limit, before || null]
@@ -191,6 +218,7 @@ async function getPostsByTypeAndLocation(locationId, type, userId, { limit = 20,
        AND p.type = $2
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
        AND ($5::timestamptz IS NULL OR p.created_at < $5)
+       AND p.is_held_for_review = FALSE
      ORDER BY p.is_pinned DESC, p.created_at DESC
      LIMIT $4`,
     [locationId, type, userId, limit, before || null]
@@ -260,6 +288,44 @@ async function getReactionCounts(postId) {
   return res.rows;
 }
 
+async function getPostsPendingReview({ limit = 20, before } = {}) {
+  const fields = getPostSelectFields(null);
+  const res = await query(
+    `SELECT ${fields}
+     FROM posts p
+     JOIN users u ON u.id = p.author_id
+     JOIN locations l ON l.id = p.location_id
+     WHERE p.is_held_for_review = TRUE
+       AND ($2::timestamptz IS NULL OR p.created_at < $2)
+     ORDER BY p.created_at DESC
+     LIMIT $1`,
+    [limit, before || null]
+  );
+  return res.rows;
+}
+
+async function approvePostModeration(id) {
+  const res = await query(
+    `UPDATE posts
+     SET is_held_for_review = FALSE, moderation_reason = NULL, updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [id]
+  );
+  return res.rows[0];
+}
+
+async function incrementAiRewriteCount(id) {
+  const res = await query(
+    `UPDATE posts
+     SET ai_rewrite_count = ai_rewrite_count + 1, updated_at = NOW()
+     WHERE id = $1
+     RETURNING *`,
+    [id]
+  );
+  return res.rows[0];
+}
+
 module.exports = {
   createPost,
   findById,
@@ -273,4 +339,7 @@ module.exports = {
   deleteComment,
   toggleReaction,
   getReactionCounts,
+  getPostsPendingReview,
+  approvePostModeration,
+  incrementAiRewriteCount,
 };

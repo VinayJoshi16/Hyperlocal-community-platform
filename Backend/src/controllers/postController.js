@@ -3,6 +3,7 @@
 
 const postModel = require('../models/postModel');
 const locationModel = require('../models/locationModel');
+const aiService = require('../services/aiService');
 const { query } = require('../config/db');
 const { asyncHandler, ok, fail } = require('../utils/helpers');
 const { z } = require('zod');
@@ -35,6 +36,7 @@ const createPostSchema = z.object({
     endsAt: z.string().datetime().optional(),
     isAnonymous: z.boolean().optional(),
   }).optional(),
+  aiRewriteCount: z.number().int().min(0).optional(),
 });
 
 const createCommentSchema = z.object({
@@ -82,6 +84,26 @@ const createPost = asyncHandler(async (req, res) => {
     return fail(res, 'Only society admins can post official notices.', 403);
   }
 
+  // AI Content Moderation Check
+  const mod = await aiService.moderateContent(data.title, data.body);
+  const isHeldForReview = mod.flagged;
+  const moderationReason = mod.reason;
+
+  // AI Emergency Severity Classification & Radius Recommendation
+  let spreadRadius = data.spreadRadius;
+  let severity = null;
+  let severityRationale = null;
+  if (data.type === 'emergency') {
+    const classification = await aiService.classifyEmergency(data.title, data.body);
+    severity = classification.severity;
+    severityRationale = classification.rationale;
+    if (!spreadRadius) {
+      if (severity === 'critical') spreadRadius = 50;
+      else if (severity === 'medium') spreadRadius = 15;
+      else spreadRadius = 3;
+    }
+  }
+
   const post = await postModel.createPost({
     authorId: req.user.id,
     locationId: data.locationId,
@@ -94,7 +116,12 @@ const createPost = asyncHandler(async (req, res) => {
     isEmergency: data.type === 'emergency' || data.isEmergency || false,
     expiresAt: data.expiresAt || null,
     geoPoint: data.geoPoint || null,
-    spreadRadius: data.spreadRadius || null,
+    spreadRadius: spreadRadius || null,
+    isHeldForReview,
+    moderationReason,
+    severity,
+    severityRationale,
+    aiRewriteCount: data.aiRewriteCount || 0,
   });
 
   if (data.type === 'event' && data.event) {
@@ -115,7 +142,16 @@ const createPost = asyncHandler(async (req, res) => {
     );
   }
 
-  const fullPost = await postModel.findById(post.id, req.user.id);
+  const fullPost = await postModel.findById(post.id, req.user.id, true);
+  
+  if (isHeldForReview) {
+    return ok(res, {
+      post: fullPost,
+      message: `Your post is held for moderation review. Reason: ${moderationReason}`,
+      isHeld: true
+    }, 201);
+  }
+
   return ok(res, { post: fullPost }, 201);
 });
 
