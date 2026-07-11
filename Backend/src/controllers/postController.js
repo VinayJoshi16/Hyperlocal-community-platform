@@ -221,15 +221,29 @@ const getLocationPosts = asyncHandler(async (req, res) => {
 // ─── Comments ────────────────────────────────────────────────────────────────
 
 const getComments = asyncHandler(async (req, res) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.id, req.user.id, true);
   if (!post) return fail(res, 'Post not found.', 404);
+
+  if (post.is_held_for_review) {
+    const isAuthor = post.author_id === req.user.id;
+    const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+    if (!isAuthor && !isAdminOrMod) {
+      return fail(res, 'Post not found.', 404);
+    }
+  }
+
   const comments = await postModel.getComments(req.params.id);
   return ok(res, { comments });
 });
 
 const addComment = asyncHandler(async (req, res) => {
-  const post = await postModel.findById(req.params.id);
+  const post = await postModel.findById(req.params.id, req.user.id, true);
   if (!post) return fail(res, 'Post not found.', 404);
+
+  if (post.is_held_for_review) {
+    return fail(res, 'Commenting is disabled on posts under moderation review.', 403);
+  }
+
   const { body, parentId } = createCommentSchema.parse(req.body);
   const comment = await postModel.createComment({
     postId: req.params.id,
