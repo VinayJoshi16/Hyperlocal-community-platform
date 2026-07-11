@@ -178,11 +178,12 @@ export default function FeedPage() {
           </h3>
           <div className="space-y-3.5">
             {[
-              { label: 'Security Guard Gate', phone: '+91 98765 43210' },
-              { label: 'RWA Management Office', phone: '022-2640-1234' },
-              { label: 'Water Supply Department', phone: '1916' },
-              { label: 'Local Police Station', phone: '100' },
-              { label: 'Fire & Rescue Services', phone: '101' }
+              { label: 'Universal Emergency Helpline', phone: '112' },
+              { label: 'Police Control Room', phone: '100' },
+              { label: 'Fire & Rescue Services', phone: '101' },
+              { label: 'Ambulance & Medical Emergency', phone: '102' },
+              { label: 'Disaster Management Services', phone: '108' },
+              { label: 'Women Helpline (Safety)', phone: '1091' }
             ].map((contact, idx) => (
               <div key={idx} className="flex flex-col border-b border-stone-100 pb-2.5 last:border-0 last:pb-0">
                 <span className="text-[11px] font-bold text-[#1C1917]">{contact.label}</span>
