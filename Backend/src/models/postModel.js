@@ -189,8 +189,9 @@ async function getFeedForUser(userId, { limit = 20, before, lat, lng } = {}) {
   return res.rows;
 }
 
-async function getPostsByUser(userId, { limit = 20, before } = {}) {
+async function getPostsByUser(userId, { limit = 20, before, includeHeld = false } = {}) {
   const fields = getPostSelectFields(1);
+  const filterHeldSql = includeHeld ? '' : 'AND p.is_held_for_review = FALSE';
   const res = await query(
     `SELECT ${fields}
      FROM posts p
@@ -199,7 +200,7 @@ async function getPostsByUser(userId, { limit = 20, before } = {}) {
      WHERE p.author_id = $1
        AND (p.expires_at IS NULL OR p.expires_at > NOW())
        AND ($3::timestamptz IS NULL OR p.created_at < $3)
-       AND p.is_held_for_review = FALSE
+       ${filterHeldSql}
      ORDER BY p.created_at DESC
      LIMIT $2`,
     [userId, limit, before || null]

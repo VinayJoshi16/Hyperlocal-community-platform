@@ -129,6 +129,21 @@ export default function PostCard({ post }) {
         </div>
       )}
 
+      {/* Moderation Pending review warning label */}
+      {postState.is_held_for_review && (
+        <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50/50 border border-amber-200/50 rounded-xl px-3.5 py-2.5 font-bold mb-4 shadow-sm text-left">
+          <AlertTriangle size={15} className="text-amber-500 fill-amber-50/20 mt-0.5 flex-shrink-0" />
+          <div className="space-y-1">
+            <div className="font-extrabold uppercase tracking-wide text-[10px] text-amber-600">Paused: Under Moderation Review</div>
+            {postState.moderation_reason && (
+              <div className="text-[11px] font-medium text-stone-500 leading-normal normal-case">
+                Reason: {postState.moderation_reason}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Header section */}
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">

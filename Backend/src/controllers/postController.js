@@ -187,7 +187,8 @@ const togglePin = asyncHandler(async (req, res) => {
 const getUserPosts = asyncHandler(async (req, res) => {
   const limit = Math.min(Number(req.query.limit) || 20, 50);
   const before = req.query.before || null;
-  const posts = await postModel.getPostsByUser(req.params.userId, { limit, before });
+  const isOwnProfile = req.params.userId === req.user.id;
+  const posts = await postModel.getPostsByUser(req.params.userId, { limit, before, includeHeld: isOwnProfile });
   const nextCursor = posts.length === limit ? posts[posts.length - 1].created_at : null;
   return ok(res, { posts, nextCursor });
 });
