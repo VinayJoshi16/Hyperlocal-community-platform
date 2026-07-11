@@ -176,7 +176,7 @@ export default function FeedPage() {
           <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
             Emergency Hotlines
           </h3>
-          <div className="space-y-3.5">
+          <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1.5 scrollable-hotlines">
             {[
               { label: 'Universal Emergency Helpline', phone: '112' },
               { label: 'Police Control Room', phone: '100' },
