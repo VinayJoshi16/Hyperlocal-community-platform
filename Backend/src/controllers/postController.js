@@ -322,8 +322,43 @@ const rsvpEvent = asyncHandler(async (req, res) => {
   return ok(res, { message: 'RSVP confirmed.' });
 });
 
+const aiRewriteSchema = z.object({
+  title: z.string().max(160).optional(),
+  body: z.string().min(1, 'Post body cannot be empty').max(5000),
+  type: z.enum(['announcement', 'notice', 'event', 'lost_found', 'business', 'poll', 'emergency']),
+});
+
+const aiRewrite = asyncHandler(async (req, res) => {
+  const { title, body, type } = aiRewriteSchema.parse(req.body);
+  const result = await aiService.improvePost(title, body, type);
+  return ok(res, result);
+});
+
+const getPendingModerationPosts = asyncHandler(async (req, res) => {
+  if (!['admin', 'moderator'].includes(req.user.role)) {
+    return fail(res, 'Access denied. Admin or moderator role required.', 403);
+  }
+  const limit = Math.min(Number(req.query.limit) || 20, 50);
+  const before = req.query.before || null;
+  const posts = await postModel.getPostsPendingReview({ limit, before });
+  const nextCursor = posts.length === limit ? posts[posts.length - 1].created_at : null;
+  return ok(res, { posts, nextCursor, count: posts.length });
+});
+
+const approvePost = asyncHandler(async (req, res) => {
+  if (!['admin', 'moderator'].includes(req.user.role)) {
+    return fail(res, 'Access denied. Admin or moderator role required.', 403);
+  }
+  const post = await postModel.findById(req.params.id, null, true);
+  if (!post) return fail(res, 'Post not found.', 404);
+
+  const approved = await postModel.approvePostModeration(req.params.id);
+  return ok(res, { post: approved, message: 'Post approved and published.' });
+});
+
 module.exports = {
   getFeed, getPost, createPost, deletePost, togglePin,
   getUserPosts, getLocationPosts, getComments, addComment,
   deleteComment, reactToPost, castVote, rsvpEvent,
+  aiRewrite, getPendingModerationPosts, approvePost,
 };

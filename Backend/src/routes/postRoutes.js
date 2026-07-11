@@ -18,6 +18,9 @@ const {
   reactToPost,
   castVote,
   rsvpEvent,
+  aiRewrite,
+  getPendingModerationPosts,
+  approvePost,
 } = require('../controllers/postController');
 
 const { authMiddleware } = require('../middleware/authMiddleware');
@@ -117,6 +120,12 @@ router.get('/feed', getFeed);
 
 // ─── Specific routes before /:id to avoid param conflicts ─────────────────────
 
+// POST /api/posts/ai-rewrite
+router.post('/ai-rewrite', aiRewrite);
+
+// GET /api/posts/pending-moderation
+router.get('/pending-moderation', requireAdminOrModerator, getPendingModerationPosts);
+
 // GET /api/posts/user/:userId
 router.get('/user/:userId', getUserPosts);
 
@@ -136,6 +145,9 @@ router.delete('/:id', deletePost);
 
 // PATCH /api/posts/:id/pin  - admin, moderator, or post author
 router.patch('/:id/pin', togglePin);
+
+// PATCH /api/posts/:id/approve-moderation - admin or moderator
+router.patch('/:id/approve-moderation', requireAdminOrModerator, approvePost);
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 

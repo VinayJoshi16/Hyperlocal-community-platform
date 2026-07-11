@@ -136,25 +136,32 @@ export default function CreatePostForm() {
     }))
   }
 
-  // AI Spelling & Grammar correction specific fields
+  // AI Spelling & Grammar / Rewrite fields
   const [correctingText, setCorrectingText] = useState(false)
+  const [aiRewriteCount, setAiRewriteCount] = useState(0)
 
-  const handleAICorrect = async () => {
+  const handleAIRewrite = async () => {
     if (!body.trim()) {
-      toast.error('Please enter some text in the body to correct.')
+      toast.error('Please enter some text in the body to polish.')
       return
     }
 
     setCorrectingText(true)
-    const toastId = toast.loading('Enhancing writing with AI...')
+    const toastId = toast.loading('Polishing draft with AI...')
     try {
-      const res = await postsAPI.correctGrammar(body)
+      const res = await postsAPI.aiRewrite(title, body, type)
       if (res.data.success) {
-        setBody(res.data.correctedText)
-        toast.success('Writing enhanced!', { id: toastId })
+        if (res.data.title !== undefined) {
+          setTitle(res.data.title)
+        }
+        if (res.data.body !== undefined) {
+          setBody(res.data.body)
+        }
+        setAiRewriteCount(prev => prev + 1)
+        toast.success('Draft polished by AI!', { id: toastId })
       }
     } catch (err) {
-      toast.error('Failed to correct spelling/grammar.', { id: toastId })
+      toast.error('Failed to polish draft with AI.', { id: toastId })
     } finally {
       setCorrectingText(false)
     }
@@ -205,6 +212,7 @@ export default function CreatePostForm() {
       mediaUrls: mediaUrls.length > 0 ? mediaUrls : undefined,
       videoUrls: videoUrls.length > 0 ? videoUrls : undefined,
       fileUrls: fileUrls.length > 0 ? fileUrls : undefined,
+      aiRewriteCount,
     }
 
     if (scopeMode === 'custom') {
@@ -253,6 +261,7 @@ export default function CreatePostForm() {
         setFileUrls([])
         setScopeMode('local')
         setCustomRadius(5)
+        setAiRewriteCount(0)
         dispatch(setCreatePostOpen(false))
       }
     } catch (err) {
@@ -797,17 +806,17 @@ export default function CreatePostForm() {
 
             <button
               type="button"
-              onClick={handleAICorrect}
+              onClick={handleAIRewrite}
               className="h-9 px-3.5 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white rounded-lg flex items-center gap-1.5 transition-all text-xs font-bold shadow-sm"
               disabled={isSubmitting || uploading || correctingText || !body.trim()}
-              title="Fix spelling and grammar using AI"
+              title="Polishes spelling, structure, and tone using AI"
             >
               {correctingText ? (
                 <Loader className="animate-spin text-white" size={14} />
               ) : (
                 <Sparkles size={14} />
               )}
-              Enhance with AI
+              AI Polish
             </button>
           </div>
 
