@@ -75,6 +75,10 @@ export default function PostDetailPage() {
   }
 
   const handleLike = async () => {
+    if (post && post.is_held_for_review) {
+      toast.error('Reactions are disabled while this post is under moderation review.')
+      return
+    }
     try {
       const res = await postsAPI.react(id)
       const { action, reactions } = res.data.data
@@ -258,6 +262,21 @@ export default function PostDetailPage() {
           <div className="flex items-center gap-1 text-xs text-primary-600 font-semibold mb-3">
             <Pin size={12} className="rotate-45" />
             <span>Pinned by Admin</span>
+          </div>
+        )}
+
+        {/* Moderation Pending review warning label */}
+        {post.is_held_for_review && (
+          <div className="flex items-start gap-2 text-xs text-amber-700 bg-amber-50/50 border border-amber-200/50 rounded-xl px-3.5 py-2.5 font-bold mb-4 shadow-sm text-left">
+            <AlertTriangle size={15} className="text-amber-500 fill-amber-50/20 mt-0.5 flex-shrink-0" />
+            <div className="space-y-1">
+              <div className="font-extrabold uppercase tracking-wide text-[10px] text-amber-600">Paused: Under Moderation Review</div>
+              {post.moderation_reason && (
+                <div className="text-[11px] font-medium text-stone-500 leading-normal normal-case">
+                  Reason: {post.moderation_reason}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -489,50 +508,57 @@ export default function PostDetailPage() {
         </h3>
 
         {/* Create comment form */}
-        <form onSubmit={handleAddComment} className="flex gap-3 items-end">
-          <div className="flex-1">
-            {replyToId && (
-              <div className="flex items-center justify-between bg-stone-100 px-3 py-1.5 rounded-t-lg border-x border-t border-stone-200 text-[11px] text-stone-500 font-medium">
-                <span>Replying to comment thread...</span>
-                <button 
-                  type="button" 
-                  onClick={() => {
-                    setReplyToId(null)
-                    setCommentText('')
-                  }}
-                  className="hover:text-stone-850"
-                >
-                  Cancel
-                </button>
-              </div>
-            )}
-            <textarea
-              ref={commentInputRef}
-              required
-              rows={replyToId ? 2 : 3}
-              placeholder="Write a constructive reply..."
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              className={`w-full px-3.5 py-2.5 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white resize-none ${
-                replyToId ? 'rounded-t-none' : ''
-              }`}
-              maxLength={1000}
-            />
+        {post.is_held_for_review ? (
+          <div className="card p-4 text-center text-amber-700 bg-amber-50/30 border border-amber-250/50 rounded-xl font-bold text-xs shadow-sm flex items-center justify-center gap-2">
+            <AlertTriangle size={15} className="text-amber-600 flex-shrink-0" />
+            <span>Commenting is disabled while this post is under moderation review.</span>
           </div>
-          <button
-            type="submit"
-            disabled={isSubmittingComment || !commentText.trim()}
-            className="btn-primary py-2.5 px-4 flex items-center justify-center gap-1.5 h-[42px] rounded-lg self-end"
-          >
-            {isSubmittingComment ? (
-              <Loader2 className="animate-spin" size={16} />
-            ) : (
-              <>
-                <Send size={14} /> Reply
-              </>
-            )}
-          </button>
-        </form>
+        ) : (
+          <form onSubmit={handleAddComment} className="flex gap-3 items-end">
+            <div className="flex-1">
+              {replyToId && (
+                <div className="flex items-center justify-between bg-stone-100 px-3 py-1.5 rounded-t-lg border-x border-t border-stone-200 text-[11px] text-stone-500 font-medium">
+                  <span>Replying to comment thread...</span>
+                  <button 
+                    type="button" 
+                    onClick={() => {
+                      setReplyToId(null)
+                      setCommentText('')
+                    }}
+                    className="hover:text-stone-850"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              )}
+              <textarea
+                ref={commentInputRef}
+                required
+                rows={replyToId ? 2 : 3}
+                placeholder="Write a constructive reply..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                className={`w-full px-3.5 py-2.5 border border-stone-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent bg-white resize-none ${
+                  replyToId ? 'rounded-t-none' : ''
+                }`}
+                maxLength={1000}
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={isSubmittingComment || !commentText.trim()}
+              className="btn-primary py-2.5 px-4 flex items-center justify-center gap-1.5 h-[42px] rounded-lg self-end"
+            >
+              {isSubmittingComment ? (
+                <Loader2 className="animate-spin" size={16} />
+              ) : (
+                <>
+                  <Send size={14} /> Reply
+                </>
+              )}
+            </button>
+          </form>
+        )}
 
         {/* Comments list */}
         {rootComments.length === 0 ? (

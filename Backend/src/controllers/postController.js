@@ -64,8 +64,17 @@ const getFeed = asyncHandler(async (req, res) => {
 // ─── Post CRUD ────────────────────────────────────────────────────────────────
 
 const getPost = asyncHandler(async (req, res) => {
-  const post = await postModel.findById(req.params.id, req.user.id);
+  const post = await postModel.findById(req.params.id, req.user.id, true);
   if (!post) return fail(res, 'Post not found.', 404);
+
+  if (post.is_held_for_review) {
+    const isAuthor = post.author_id === req.user.id;
+    const isAdminOrMod = req.user.role === 'admin' || req.user.role === 'moderator';
+    if (!isAuthor && !isAdminOrMod) {
+      return fail(res, 'Post not found.', 404);
+    }
+  }
+
   return ok(res, { post });
 });
 
