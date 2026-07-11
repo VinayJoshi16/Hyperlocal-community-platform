@@ -203,9 +203,29 @@ export default function PostDetailPage() {
 
   if (!post) {
     return (
-      <div className="max-w-feed mx-auto w-full px-4 py-16 text-center">
-        <h2 className="text-lg font-bold text-stone-700">Post not found</h2>
-        <button onClick={() => navigate('/feed')} className="btn-primary mt-4 py-2">
+      <div className="max-w-md mx-auto w-full px-6 py-20 flex flex-col items-center justify-center text-center">
+        {/* Modern illustrative 404 image */}
+        <div className="w-64 h-64 mb-8 select-none flex items-center justify-center animate-in fade-in zoom-in-95 duration-300">
+          <img 
+            src="/empty_state_404.png" 
+            alt="Post Not Found Illustration" 
+            className="w-full h-full object-contain filter drop-shadow-[0_8px_16px_rgba(0,0,0,0.03)]"
+          />
+        </div>
+        
+        <h2 className="text-xl font-black text-stone-800 tracking-tight leading-snug">
+          Post Not Found
+        </h2>
+        
+        <p className="text-xs text-stone-450 font-semibold mt-2.5 max-w-xs leading-relaxed">
+          The post you are looking for does not exist, has been deleted, or is currently held for moderation review.
+        </p>
+        
+        <button 
+          onClick={() => navigate('/feed')} 
+          className="h-10 px-6 bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-xs rounded-xl shadow-[0_4px_12px_rgba(37,99,235,0.2)] hover:shadow-[0_4px_16px_rgba(37,99,235,0.35)] transition-all flex items-center gap-1.8 mt-8"
+        >
+          <ArrowLeft size={14} className="stroke-[2.5]" />
           Back to Feed
         </button>
       </div>
