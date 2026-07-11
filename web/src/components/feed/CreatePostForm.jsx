@@ -150,12 +150,12 @@ export default function CreatePostForm() {
     const toastId = toast.loading('Polishing draft with AI...')
     try {
       const res = await postsAPI.aiRewrite(title, body, type)
-      if (res.data.success) {
-        if (res.data.title !== undefined) {
-          setTitle(res.data.title)
+      if (res.data.success && res.data.data) {
+        if (res.data.data.title !== undefined) {
+          setTitle(res.data.data.title)
         }
-        if (res.data.body !== undefined) {
-          setBody(res.data.body)
+        if (res.data.data.body !== undefined) {
+          setBody(res.data.data.body)
         }
         setAiRewriteCount(prev => prev + 1)
         toast.success('Draft polished by AI!', { id: toastId })
