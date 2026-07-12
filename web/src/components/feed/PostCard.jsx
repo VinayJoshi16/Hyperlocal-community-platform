@@ -7,7 +7,7 @@ import { useNavigate } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
 import { 
   Heart, MessageCircle, Pin, Calendar, MapPin, 
-  Users, Check, Clock, AlertTriangle, ArrowRight, X, Maximize2 
+  Users, Check, Clock, AlertTriangle, ArrowRight, X, Maximize2, Globe, FileText 
 } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import toast from 'react-hot-toast'
@@ -36,6 +36,57 @@ export default function PostCard({ post }) {
   useEffect(() => {
     setPostState(post)
   }, [post])
+
+  // Translation state
+  const [preferredLang, setPreferredLang] = useState(() => localStorage.getItem('preferredLang') || 'Hindi')
+  const [translatedText, setTranslatedText] = useState(null)
+  const [isTranslated, setIsTranslated] = useState(false)
+  const [translating, setTranslating] = useState(false)
+
+  // Lost & Found Match State
+  const [matches, setMatches] = useState([])
+  const [matchesOpen, setMatchesOpen] = useState(false)
+
+  useEffect(() => {
+    if (postState.type === 'lost_found') {
+      let isMounted = true;
+      async function fetchMatches() {
+        try {
+          const res = await postsAPI.getMatches(postState.id)
+          if (isMounted) {
+            setMatches(res.data.data.matches || [])
+          }
+        } catch (err) {
+          console.error('Failed to fetch semantic matches:', err.message)
+        }
+      }
+      fetchMatches()
+      return () => { isMounted = false; }
+    }
+  }, [postState.id, postState.type])
+
+  const handleTranslate = async (e, targetLang = preferredLang) => {
+    e.stopPropagation()
+    if (isTranslated) {
+      setIsTranslated(false)
+      return
+    }
+    if (translatedText) {
+      setIsTranslated(true)
+      return
+    }
+
+    setTranslating(true)
+    try {
+      const res = await postsAPI.translate(postState.id, targetLang)
+      setTranslatedText(res.data.data)
+      setIsTranslated(true)
+    } catch (err) {
+      toast.error('Failed to translate post.')
+    } finally {
+      setTranslating(false)
+    }
+  }
 
   const formatTime = (dateStr) => {
     try {
@@ -191,11 +242,11 @@ export default function PostCard({ post }) {
       <div className="mt-5 text-left">
         {postState.title && (
           <h2 className="text-[17px] font-extrabold text-stone-850 leading-snug mb-2">
-            {postState.title}
+            {isTranslated && translatedText?.title ? translatedText.title : postState.title}
           </h2>
         )}
         <p className="text-[15px] text-stone-600 leading-relaxed whitespace-pre-wrap line-clamp-3 font-normal">
-          {renderBodyWithLinks(postState.body)}
+          {renderBodyWithLinks(isTranslated && translatedText?.body ? translatedText.body : postState.body)}
         </p>
         {postState.media_urls && postState.media_urls.length > 0 && (() => {
           const imgUrl = postState.media_urls[0]
@@ -380,6 +431,46 @@ export default function PostCard({ post }) {
             <span>Expires {formatTime(postState.expires_at)}</span>
           </div>
         )}
+
+        {/* AI Semantic Matches */}
+        {postState.type === 'lost_found' && matches.length > 0 && (
+          <div className="mt-4 p-3 bg-purple-50/50 border border-purple-100/60 rounded-xl space-y-2 text-left" onClick={(e) => e.stopPropagation()}>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                setMatchesOpen(!matchesOpen);
+              }}
+              className="flex items-center justify-between w-full text-xs font-bold text-purple-700 uppercase tracking-wide hover:text-purple-900 transition-colors"
+            >
+              <span className="flex items-center gap-1.5">
+                <Users size={13} className="text-purple-600 animate-pulse flex-shrink-0" />
+                🔍 AI Detected {matches.length} Potential Match{matches.length > 1 ? 'es' : ''} Nearby
+              </span>
+              <span className="text-[10px] underline flex-shrink-0">{matchesOpen ? 'Hide' : 'Show'}</span>
+            </button>
+            {matchesOpen && (
+              <div className="space-y-1.5 pt-1.5 border-t border-purple-100/40">
+                {matches.map((m) => (
+                  <div 
+                    key={m.id} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/posts/${m.id}`);
+                    }}
+                    className="flex items-center justify-between p-2 rounded-lg bg-white border border-purple-105/30 hover:border-purple-300 transition-all cursor-pointer text-xs"
+                  >
+                    <div className="truncate font-semibold text-stone-750 pr-3">
+                      {m.title || 'Untitled'} ({m.author_name})
+                    </div>
+                    <div className="text-[10px] text-purple-600 font-bold bg-purple-50 px-1.5 py-0.5 rounded flex-shrink-0">
+                      {Math.round((1 - m.cosine_distance) * 100)}% Match
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Footer / actions */}
@@ -397,6 +488,44 @@ export default function PostCard({ post }) {
         <div className="flex items-center gap-2 hover:text-stone-700 transition-colors hover:scale-105 cursor-pointer">
           <MessageCircle size={17} />
           <span>{postState.comment_count || 0}</span>
+        </div>
+
+        {/* Translation Option */}
+        <div className="flex items-center gap-1.5 ml-auto select-none" onClick={(e) => e.stopPropagation()}>
+          <button
+            onClick={handleTranslate}
+            disabled={translating}
+            className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg border transition-all text-[11px] font-bold ${
+              isTranslated
+                ? 'bg-primary-50 border-primary-200 text-primary-750 hover:bg-primary-100'
+                : 'bg-white border-stone-200 text-stone-500 hover:bg-stone-50'
+            }`}
+          >
+            <Globe size={13} className={translating ? 'animate-spin text-primary-600' : ''} />
+            <span>{isTranslated ? 'Original' : 'Translate'}</span>
+          </button>
+          
+          <select
+            value={preferredLang}
+            onChange={(e) => {
+              const lang = e.target.value;
+              setPreferredLang(lang);
+              localStorage.setItem('preferredLang', lang);
+              if (isTranslated) {
+                // Fetch translation for new language immediately
+                setIsTranslated(false);
+                setTranslatedText(null);
+                handleTranslate(e, lang);
+              }
+            }}
+            className="text-[10px] bg-white border border-stone-200 rounded px-1.5 py-0.5 font-bold text-stone-500 focus:outline-none"
+          >
+            <option value="Hindi">Hindi 🇮🇳</option>
+            <option value="Tamil">Tamil 🇮🇳</option>
+            <option value="Telugu">Telugu 🇮🇳</option>
+            <option value="Marathi">Marathi 🇮🇳</option>
+            <option value="Spanish">Spanish 🇪🇸</option>
+          </select>
         </div>
       </div>
 

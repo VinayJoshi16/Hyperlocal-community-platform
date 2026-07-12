@@ -21,6 +21,10 @@ const {
   aiRewrite,
   getPendingModerationPosts,
   approvePost,
+  translatePost,
+  getPostMatches,
+  generatePollOptions,
+  triggerTestDigest
 } = require('../controllers/postController');
 
 const { authMiddleware } = require('../middleware/authMiddleware');
@@ -123,6 +127,12 @@ router.get('/feed', getFeed);
 // POST /api/posts/ai-rewrite
 router.post('/ai-rewrite', aiRewrite);
 
+// POST /api/posts/generate-poll
+router.post('/generate-poll', generatePollOptions);
+
+// POST /api/posts/test-digest
+router.post('/test-digest', requireAdminOrModerator, triggerTestDigest);
+
 // GET /api/posts/pending-moderation
 router.get('/pending-moderation', requireAdminOrModerator, getPendingModerationPosts);
 
@@ -148,6 +158,12 @@ router.patch('/:id/pin', togglePin);
 
 // PATCH /api/posts/:id/approve-moderation - admin or moderator
 router.patch('/:id/approve-moderation', requireAdminOrModerator, approvePost);
+
+// POST /api/posts/:id/translate
+router.post('/:id/translate', translatePost);
+
+// GET /api/posts/:id/matches
+router.get('/:id/matches', getPostMatches);
 
 // ─── Comments ─────────────────────────────────────────────────────────────────
 

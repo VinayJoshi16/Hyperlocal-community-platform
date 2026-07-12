@@ -130,6 +130,9 @@ export const postsAPI = {
   uploadImage:      (formData) => api.post('/posts/upload', formData, { headers: { 'Content-Type': undefined } }),
   correctGrammar:   (text)  => api.post('/posts/correct-grammar', { text }),
   aiRewrite:        (title, body, type) => api.post('/posts/ai-rewrite', { title, body, type }),
+  translate:        (id, targetLanguage) => api.post(`/posts/${id}/translate`, { targetLanguage }),
+  getMatches:       (id)    => api.get(`/posts/${id}/matches`),
+  generatePoll:     (topic) => api.post('/posts/generate-poll', { topic }),
   deletePost:       (id)    => api.delete(`/posts/${id}`),
   togglePin:        (id)    => api.patch(`/posts/${id}/pin`),
   getUserPosts:     (userId, { limit, before } = {}) =>

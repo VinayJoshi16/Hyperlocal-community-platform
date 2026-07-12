@@ -24,16 +24,18 @@ async function createPost({
   moderationReason = null,
   severity = null,
   severityRationale = null,
-  aiRewriteCount = 0
+  aiRewriteCount = 0,
+  embedding = null
 }) {
   const res = await query(
     `INSERT INTO posts
-       (author_id, location_id, type, title, body, media_urls, video_urls, file_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius, is_held_for_review, moderation_reason, severity, severity_rationale, ai_rewrite_count)
+       (author_id, location_id, type, title, body, media_urls, video_urls, file_urls, is_emergency, is_pinned, geo_point, expires_at, spread_radius, is_held_for_review, moderation_reason, severity, severity_rationale, ai_rewrite_count, embedding)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10,
        CASE WHEN $11::text IS NOT NULL
             THEN ST_SetSRID(ST_GeomFromGeoJSON($11), 4326)::geography
             ELSE NULL END,
-       $12, $13, $14, $15, $16, $17, $18)
+       $12, $13, $14, $15, $16, $17, $18,
+       CASE WHEN $19::text IS NOT NULL THEN $19::vector ELSE NULL END)
      RETURNING *`,
     [
       authorId,
@@ -53,7 +55,8 @@ async function createPost({
       moderationReason,
       severity,
       severityRationale,
-      aiRewriteCount
+      aiRewriteCount,
+      embedding ? JSON.stringify(embedding) : null
     ]
   );
   return res.rows[0];
@@ -208,6 +211,36 @@ async function getPostsByUser(userId, { limit = 20, before, includeHeld = false 
   return res.rows;
 }
 
+async function findMatchesForPost(postId, userId) {
+  // Fetch post details first
+  const postRes = await query('SELECT location_id, type, embedding, title, body FROM posts WHERE id = $1', [postId]);
+  if (postRes.rows.length === 0) return [];
+  
+  const post = postRes.rows[0];
+  if (post.type !== 'lost_found' || !post.embedding) {
+    return [];
+  }
+
+  const fields = getPostSelectFields(2); // user ID param is $2
+  const res = await query(
+    `SELECT ${fields}, 
+            (p.embedding <=> $3::vector) AS cosine_distance
+     FROM posts p
+     JOIN users u ON u.id = p.author_id
+     JOIN locations l ON l.id = p.location_id
+     WHERE p.id != $1
+       AND p.location_id = $4
+       AND p.type = 'lost_found'
+       AND p.is_held_for_review = FALSE
+       AND p.embedding IS NOT NULL
+       AND (p.embedding <=> $3::vector) < 0.45
+     ORDER BY (p.embedding <=> $3::vector) ASC
+     LIMIT 5`,
+    [postId, userId, post.embedding, post.location_id]
+  );
+  return res.rows;
+}
+
 async function getPostsByTypeAndLocation(locationId, type, userId, { limit = 20, before } = {}) {
   const fields = getPostSelectFields(3);
   const res = await query(
@@ -334,6 +367,7 @@ module.exports = {
   pinPost,
   getFeedForUser,
   getPostsByUser,
+  findMatchesForPost,
   getPostsByTypeAndLocation,
   getComments,
   createComment,

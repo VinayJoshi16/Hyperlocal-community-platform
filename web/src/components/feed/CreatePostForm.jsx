@@ -69,6 +69,8 @@ export default function CreatePostForm() {
 
   // Poll specific fields
   const [pollOptions, setPollOptions] = useState(['', ''])
+  const [pollTopic, setPollTopic] = useState('')
+  const [generatingPoll, setGeneratingPoll] = useState(false)
 
   // Multi-media uploads specific fields
   const [mediaUrls, setMediaUrls] = useState([])
@@ -718,7 +720,7 @@ export default function CreatePostForm() {
 
         {/* Dynamic Fields for POLLS */}
         {type === 'poll' && (
-          <div className="p-3 bg-stone-50 border border-stone-200 rounded-lg space-y-3 text-left">
+          <div className="p-3 bg-stone-50 border border-stone-200 rounded-lg space-y-3.5 text-left">
             <div className="flex justify-between items-center">
               <h4 className="text-xs font-bold text-stone-500 uppercase tracking-wider">Poll Options</h4>
               {pollOptions.length < 6 && (
@@ -731,6 +733,43 @@ export default function CreatePostForm() {
                 </button>
               )}
             </div>
+
+            {/* AI Option Generator input line */}
+            <div className="flex gap-2 items-center bg-white p-2 border border-stone-200 rounded-xl shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
+              <Sparkles size={14} className="text-indigo-600 flex-shrink-0" />
+              <input
+                type="text"
+                placeholder="AI: Enter a topic (e.g. 'parking rules')"
+                value={pollTopic}
+                onChange={(e) => setPollTopic(e.target.value)}
+                className="flex-1 text-[11px] font-semibold text-stone-705 bg-transparent border-0 focus:outline-none focus:ring-0 placeholder:text-stone-400 py-1"
+              />
+              <button
+                type="button"
+                disabled={generatingPoll || !pollTopic.trim()}
+                onClick={async () => {
+                  setGeneratingPoll(true)
+                  try {
+                    const res = await postsAPI.generatePoll(pollTopic)
+                    const generated = res.data.data.options || []
+                    if (generated.length > 0) {
+                      setPollOptions(generated)
+                      toast.success('Generated unbiased poll options!')
+                    } else {
+                      toast.error('No options returned. Please try another topic.')
+                    }
+                  } catch (err) {
+                    toast.error('Failed to generate options.')
+                  } finally {
+                    setGeneratingPoll(false)
+                  }
+                }}
+                className="btn-primary py-1 px-3 h-7 rounded-lg text-[10px] font-bold bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-50"
+              >
+                {generatingPoll ? 'Generating...' : 'AI Generate'}
+              </button>
+            </div>
+
             <div className="space-y-2">
               {pollOptions.map((opt, i) => (
                 <div key={i} className="flex gap-2 items-center">

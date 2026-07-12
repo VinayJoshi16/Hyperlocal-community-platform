@@ -10,6 +10,7 @@ const config = require('./src/config/env');
 const { testConnection } = require('./src/config/db');
 const { startKeepAlive } = require('./src/utils/keepAlive');
 const { runMigrations } = require('./migrations/run');
+const { initScheduler } = require('./src/services/digestScheduler');
 
 const server = http.createServer(app);
 
@@ -113,6 +114,9 @@ async function start() {
     
     // Start keep-alive ping on Render
     startKeepAlive();
+    
+    // Initialize weekly community digest scheduler
+    initScheduler();
   });
 }
 

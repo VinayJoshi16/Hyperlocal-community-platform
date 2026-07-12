@@ -174,8 +174,183 @@ Body: ${body}
   }
 }
 
+/**
+ * AI Embeddings Generation (for lost & found semantic matching)
+ */
+async function generateEmbedding(text) {
+  if (!GEMINI_API_KEY) {
+    console.log('[AI MOCK] Generating mock vector embedding of 768 dimensions');
+    const vec = [];
+    let hash = 0;
+    for (let i = 0; i < text.length; i++) {
+      hash = text.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    for (let i = 0; i < 768; i++) {
+      const val = Math.sin(hash + i) * 0.1;
+      vec.push(parseFloat(val.toFixed(6)));
+    }
+    return vec;
+  }
+
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-2:embedContent?key=${GEMINI_API_KEY}`;
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: "models/gemini-embedding-2",
+      content: {
+        parts: [{ text }]
+      },
+      outputDimensionality: 768
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    throw new Error(`Gemini Embedding API error: ${response.status} - ${errText}`);
+  }
+
+  const data = await response.json();
+  if (!data.embedding || !data.embedding.values) {
+    throw new Error('Invalid embedding response from Gemini');
+  }
+  return data.embedding.values;
+}
+
+/**
+ * AI Community Digest Summariser
+ */
+async function summarizePosts(posts) {
+  if (!posts || posts.length === 0) {
+    return "• No updates in your community this week.";
+  }
+
+  if (!GEMINI_API_KEY) {
+    console.log('[AI MOCK] Summarising posts');
+    const lines = posts.slice(0, 5).map((p) => `• ${p.title || 'Update'}: ${p.body.substring(0, 60)}...`);
+    while (lines.length < 5) {
+      lines.push('• Stay safe and keep connecting with your neighbors.');
+    }
+    return lines.join('\n');
+  }
+
+  const postsText = posts.map((p, idx) => `Post #${idx+1}: [${p.type.toUpperCase()}] Title: ${p.title || 'No Title'} | Body: ${p.body}`).join('\n\n');
+  const prompt = `
+You are a community manager summarizing the week's neighborhood updates.
+Please write a concise 5-line plain-English bulleted summary highlighting the most important updates, events, or alerts from this list.
+Ensure there are exactly 5 bullet points (each starting with a bullet character •). Do not include any extra introductory or concluding text.
+
+Neighborhood Posts:
+${postsText}
+`;
+
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }]
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    return text ? text.trim() : '• Weekly updates summarized.';
+  } catch (err) {
+    console.error('Gemini call failed inside summarizePosts, using mock:', err.message);
+    const lines = posts.slice(0, 5).map((p) => `• ${p.title || 'Update'}: ${p.body.substring(0, 60)}...`);
+    while (lines.length < 5) {
+      lines.push('• Stay safe and keep connecting with your neighbors.');
+    }
+    return lines.join('\n');
+  }
+}
+
+/**
+ * AI Multilingual Text Translation
+ */
+async function translateText(title, body, targetLanguage) {
+  if (!GEMINI_API_KEY) {
+    console.log('[AI MOCK] Translating text to', targetLanguage);
+    return {
+      title: title ? `[${targetLanguage}] ${title}` : '',
+      body: `[${targetLanguage}] ${body} (Note: This is a mock translation.)`
+    };
+  }
+
+  const prompt = `
+You are a multilingual translator for a neighborhood community platform.
+Translate the following post title and body into the requested language: "${targetLanguage}".
+Ensure the translation matches local cultural context (especially for Indian languages like Hindi, Tamil, etc.).
+Keep formatting, numbers, and proper nouns intact. Do not add any preamble or remarks.
+Respond with a JSON object containing "title" and "body" keys.
+
+Title: ${title || ''}
+Body: ${body}
+`;
+
+  try {
+    return await callGemini(prompt);
+  } catch (err) {
+    console.error('Gemini call failed inside translateText, falling back to mock:', err.message);
+    return {
+      title: title ? `[${targetLanguage}] ${title}` : '',
+      body: `[${targetLanguage}] ${body} (Translation fallback applied: ${err.message})`
+    };
+  }
+}
+
+/**
+ * AI Smart Poll Question / Options Generator
+ */
+async function generatePollOptions(topic) {
+  if (!GEMINI_API_KEY) {
+    console.log('[AI MOCK] Generating poll options for', topic);
+    return {
+      options: [
+        `Yes, support ${topic}`,
+        `No, oppose ${topic}`,
+        `Need more discussions on ${topic}`,
+        `Neutral / No opinion`
+      ]
+    };
+  }
+
+  const prompt = `
+You are a community coordinator generating a fair, neutral, and unbiased poll.
+Generate 4 to 5 balanced options for a poll about the following topic: "${topic}".
+Avoid leading questions or loaded phrasing. Ensure different perspectives are represented neutrally.
+Respond with a JSON object containing an "options" key, which is an array of strings (each string should be a poll option, max 60 characters).
+
+Topic: ${topic}
+`;
+
+  try {
+    return await callGemini(prompt);
+  } catch (err) {
+    console.error('Gemini call failed inside generatePollOptions, falling back to mock:', err.message);
+    return {
+      options: [
+        `Option 1 for ${topic}`,
+        `Option 2 for ${topic}`,
+        `Option 3 for ${topic}`,
+        `Option 4 for ${topic}`
+      ]
+    };
+  }
+}
+
 module.exports = {
   improvePost,
   moderateContent,
-  classifyEmergency
+  classifyEmergency,
+  generateEmbedding,
+  summarizePosts,
+  translateText,
+  generatePollOptions
 };

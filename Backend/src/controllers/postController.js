@@ -113,6 +113,17 @@ const createPost = asyncHandler(async (req, res) => {
     }
   }
 
+  // Generate vector embedding for lost_found posts
+  let embedding = null;
+  if (data.type === 'lost_found') {
+    try {
+      const combinedText = `${data.title || ''} ${data.body}`.trim();
+      embedding = await aiService.generateEmbedding(combinedText);
+    } catch (err) {
+      console.error('[Embeddings] Failed to generate embedding:', err.message);
+    }
+  }
+
   const post = await postModel.createPost({
     authorId: req.user.id,
     locationId: data.locationId,
@@ -131,6 +142,7 @@ const createPost = asyncHandler(async (req, res) => {
     severity,
     severityRationale,
     aiRewriteCount: data.aiRewriteCount || 0,
+    embedding,
   });
 
   if (data.type === 'event' && data.event) {
@@ -380,9 +392,50 @@ const approvePost = asyncHandler(async (req, res) => {
   return ok(res, { post: approved, message: 'Post approved and published.' });
 });
 
+const translatePost = asyncHandler(async (req, res) => {
+  const { targetLanguage } = req.body;
+  if (!targetLanguage) {
+    return fail(res, 'targetLanguage is required.', 400);
+  }
+  
+  const post = await postModel.findById(req.params.id, req.user.id, true);
+  if (!post) {
+    return fail(res, 'Post not found.', 404);
+  }
+
+  const translation = await aiService.translateText(post.title, post.body, targetLanguage);
+  return ok(res, translation);
+});
+
+const getPostMatches = asyncHandler(async (req, res) => {
+  const matches = await postModel.findMatchesForPost(req.params.id, req.user.id);
+  return ok(res, { matches });
+});
+
+const generatePollOptions = asyncHandler(async (req, res) => {
+  const { topic } = req.body;
+  if (!topic || !topic.trim()) {
+    return fail(res, 'Topic is required.', 400);
+  }
+
+  const result = await aiService.generatePollOptions(topic);
+  return ok(res, result);
+});
+
+const triggerTestDigest = asyncHandler(async (req, res) => {
+  if (req.user.role !== 'admin') {
+    return fail(res, 'Access denied. Admin role required.', 403);
+  }
+  const { sendWeeklyDigests } = require('../services/digestScheduler');
+  // Trigger asynchronously
+  sendWeeklyDigests();
+  return ok(res, { message: 'Weekly digest compilation triggered successfully.' });
+});
+
 module.exports = {
   getFeed, getPost, createPost, deletePost, togglePin,
   getUserPosts, getLocationPosts, getComments, addComment,
   deleteComment, reactToPost, castVote, rsvpEvent,
   aiRewrite, getPendingModerationPosts, approvePost,
+  translatePost, getPostMatches, generatePollOptions, triggerTestDigest
 };
