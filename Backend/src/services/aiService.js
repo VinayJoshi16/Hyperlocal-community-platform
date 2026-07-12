@@ -40,13 +40,48 @@ async function callGemini(prompt) {
     throw new Error('Empty response from Gemini API');
   }
 
-  // Robustly extract the outermost JSON object to ignore preambles or trailing explanations
+  // Robustly extract the outermost JSON object by matching braces, skipping strings and escapes
   const firstBrace = text.indexOf('{');
-  const lastBrace = text.lastIndexOf('}');
-  if (firstBrace === -1 || lastBrace === -1 || lastBrace < firstBrace) {
-    throw new Error(`No valid JSON object found in response: "${text}"`);
+  if (firstBrace === -1) {
+    throw new Error(`No opening brace found in response: "${text}"`);
   }
-  const jsonString = text.substring(firstBrace, lastBrace + 1);
+
+  let braceCount = 0;
+  let inString = false;
+  let escape = false;
+  let jsonString = null;
+
+  for (let i = firstBrace; i < text.length; i++) {
+    const char = text[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (char === '\\') {
+      escape = true;
+      continue;
+    }
+    if (char === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (!inString) {
+      if (char === '{') {
+        braceCount++;
+      } else if (char === '}') {
+        braceCount--;
+        if (braceCount === 0) {
+          jsonString = text.substring(firstBrace, i + 1);
+          break;
+        }
+      }
+    }
+  }
+
+  if (!jsonString) {
+    throw new Error(`No matching closing brace found in response: "${text}"`);
+  }
+
   return JSON.parse(jsonString);
 }
 
