@@ -474,7 +474,7 @@ export default function PostCard({ post }) {
       </div>
 
       {/* Footer / actions */}
-      <div className="mt-5 pt-4 border-t border-stone-100/90 flex items-center gap-8 text-stone-400 text-xs font-bold select-none">
+      <div className="mt-5 pt-4 border-t border-stone-100/90 flex flex-wrap items-center gap-x-4 sm:gap-x-8 gap-y-2.5 text-stone-400 text-xs font-bold select-none">
         <button 
           onClick={handleLike}
           className={`flex items-center gap-2 transition-all hover:text-red-500 hover:scale-105 active:scale-95 ${
@@ -518,7 +518,7 @@ export default function PostCard({ post }) {
                 handleTranslate(e, lang);
               }
             }}
-            className="text-[10px] bg-white border border-stone-200 rounded px-1.5 py-0.5 font-bold text-stone-500 focus:outline-none"
+            className="text-[10px] bg-white border border-stone-200 rounded px-1 py-0.5 font-bold text-stone-500 focus:outline-none max-w-[85px] sm:max-w-none"
           >
             <option value="Hindi">Hindi 🇮🇳</option>
             <option value="Tamil">Tamil 🇮🇳</option>
