@@ -52,6 +52,18 @@ export const joinLocation = createAsyncThunk(
   }
 )
 
+export const updateUserPrimaryLocation = createAsyncThunk(
+  'location/updatePrimary',
+  async (locationId, { rejectWithValue }) => {
+    try {
+      const res = await locationAPI.updatePrimary(locationId)
+      return res.data.data.locations
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || 'Failed to update primary location')
+    }
+  }
+)
+
 // ─── Slice ────────────────────────────────────────────────────────────────────
 
 const locationSlice = createSlice({
@@ -144,6 +156,24 @@ const locationSlice = createSlice({
         toast.success(`Joined ${action.payload.name}.`)
       })
       .addCase(joinLocation.rejected, (_, action) => {
+        toast.error(action.payload)
+      })
+
+    // ── updateUserPrimaryLocation ──
+    builder
+      .addCase(updateUserPrimaryLocation.pending, (state) => {
+        state.isSettingLocation = true
+      })
+      .addCase(updateUserPrimaryLocation.fulfilled, (state, action) => {
+        state.isSettingLocation = false
+        state.myLocations       = action.payload
+        state.needsLocation     = false
+        const newPrimary = action.payload.find((l) => l.is_primary) || action.payload[0]
+        state.activeLocation    = newPrimary
+        toast.success(`Primary location updated to ${newPrimary?.name || 'new community'}.`)
+      })
+      .addCase(updateUserPrimaryLocation.rejected, (state, action) => {
+        state.isSettingLocation = false
         toast.error(action.payload)
       })
   },

@@ -11,6 +11,7 @@ const {
   searchLocations,
   joinLocation,
   resolveGps,
+  updatePrimaryLocation,
 } = require('../controllers/locationController');
 const { authMiddleware } = require('../middleware/authMiddleware');
 
@@ -36,5 +37,8 @@ router.get('/:id/children', getChildren);
 
 // Manually join a specific society by ID
 router.post('/join/:id', joinLocation);
+
+// Update user's primary location manually
+router.post('/update-primary', updatePrimaryLocation);
 
 module.exports = router;

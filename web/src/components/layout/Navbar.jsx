@@ -1,11 +1,14 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Menu, MapPin, ChevronDown, User, LogOut } from 'lucide-react'
+import { Menu, MapPin, ChevronDown, User, LogOut, Plus, Search, Loader2, X } from 'lucide-react'
+import toast from 'react-hot-toast'
 
 import { selectUser, logout } from '../../redux/slices/authSlice'
 import { selectActiveLocation, selectMyLocations,
-         setActiveLocation } from '../../redux/slices/locationSlice'
+         setActiveLocation, searchLocations, setLocationFromGPS,
+         updateUserPrimaryLocation, selectSearchResults,
+         selectIsSearching, selectSettingLocation } from '../../redux/slices/locationSlice'
 import { toggleSidebar } from '../../redux/slices/uiSlice'
 
 export default function Navbar() {
@@ -17,8 +20,23 @@ export default function Navbar() {
 
   const [userMenuOpen, setUserMenuOpen]         = useState(false)
   const [locationMenuOpen, setLocationMenuOpen] = useState(false)
+  const [changeLocationModalOpen, setChangeLocationModalOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+
+  const searchResults = useSelector(selectSearchResults)
+  const isSearching = useSelector(selectIsSearching)
+  const isSettingLocation = useSelector(selectSettingLocation)
 
   const userMenuRef = useRef(null)
+
+  // Debounced search for locations picker
+  useEffect(() => {
+    if (searchQuery.length < 2) return
+    const timer = setTimeout(() => {
+      dispatch(searchLocations(searchQuery))
+    }, 450)
+    return () => clearTimeout(timer)
+  }, [searchQuery, dispatch])
   const locationMenuRef = useRef(null)
 
   // Compute initials for the user profile badge
@@ -94,6 +112,18 @@ export default function Navbar() {
                     <span className="truncate">{loc.name}</span>
                   </button>
                 ))}
+                
+                <div className="px-3 py-2 border-t border-stone-100 mt-1 select-none">
+                  <button
+                    onClick={() => {
+                      setLocationMenuOpen(false)
+                      setChangeLocationModalOpen(true)
+                    }}
+                    className="w-full text-center px-3 py-1.8 text-[11px] font-bold text-primary-600 bg-primary-50/50 hover:bg-primary-50 active:bg-primary-100/80 rounded-lg transition-colors flex items-center justify-center gap-1"
+                  >
+                    <Plus size={12} className="stroke-[2.5]" /> Change Location
+                  </button>
+                </div>
               </div>
             )}
           </div>
@@ -140,6 +170,144 @@ export default function Navbar() {
         </div>
 
       </div>
+
+      {/* Change Location Modal */}
+      {changeLocationModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div 
+            onClick={(e) => e.stopPropagation()} 
+            className="bg-white rounded-2xl border border-stone-200 w-full max-w-md p-6 shadow-xl animate-in zoom-in-95 duration-200 text-left"
+          >
+            {/* Modal Header */}
+            <div className="flex justify-between items-center mb-5">
+              <h3 className="text-base font-extrabold text-stone-850 flex items-center gap-1.5">
+                <MapPin size={17} className="text-primary-600" />
+                Change Current Location
+              </h3>
+              <button 
+                onClick={() => {
+                  setChangeLocationModalOpen(false)
+                  setSearchQuery('')
+                }}
+                className="text-stone-400 hover:text-stone-600 p-1 rounded-lg transition-colors"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* GPS Button */}
+            <button
+              onClick={() => {
+                if (isSettingLocation) return
+                if (navigator.geolocation) {
+                  navigator.geolocation.getCurrentPosition(
+                    async (pos) => {
+                      try {
+                        const result = await dispatch(
+                          setLocationFromGPS({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+                        )
+                        if (result.meta.requestStatus === 'fulfilled') {
+                          setChangeLocationModalOpen(false)
+                          setSearchQuery('')
+                          // reload feed to fetch new location content
+                          navigate('/feed')
+                          window.location.reload()
+                        }
+                      } catch (_) {
+                        toast.error('Failed to sync location with GPS.')
+                      }
+                    },
+                    (err) => {
+                      toast.error('GPS permission denied. Please search manually.')
+                    },
+                    { enableHighAccuracy: true, timeout: 8000 }
+                  )
+                } else {
+                  toast.error('Geolocation is not supported by your browser.')
+                }
+              }}
+              disabled={isSettingLocation}
+              className="w-full h-11 bg-primary-50 hover:bg-primary-100/80 active:bg-primary-100 text-primary-700 border border-primary-200/60 font-extrabold text-xs rounded-xl shadow-sm transition-all flex items-center justify-center gap-2 mb-5"
+            >
+              {isSettingLocation ? (
+                <>
+                  <Loader2 className="animate-spin text-primary-600" size={15} />
+                  <span>Locating via GPS...</span>
+                </>
+              ) : (
+                <>
+                  <MapPin size={15} className="stroke-[2.5]" />
+                  <span>Use Current GPS Location</span>
+                </>
+              )}
+            </button>
+
+            {/* Separator */}
+            <div className="relative flex py-2 items-center mb-4">
+              <div className="flex-grow border-t border-stone-200"></div>
+              <span className="flex-shrink mx-4 text-[10px] text-stone-450 font-bold uppercase tracking-widest">Or search manually</span>
+              <div className="flex-grow border-t border-stone-200"></div>
+            </div>
+
+            {/* Search Input */}
+            <div className="relative mb-4">
+              <input
+                type="text"
+                placeholder="Search for your new society/neighborhood..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full h-11 pl-10 pr-4 bg-stone-50 border border-stone-200 rounded-xl text-xs font-semibold placeholder:text-stone-400 focus:outline-none focus:ring-2 focus:ring-primary-500/80 focus:border-transparent transition-all"
+              />
+              <Search className="absolute left-3.5 top-3.5 text-stone-400" size={15} />
+            </div>
+
+            {/* Search Results */}
+            <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
+              {isSearching ? (
+                <div className="flex items-center justify-center py-6 text-stone-400 gap-2">
+                  <Loader2 className="animate-spin" size={16} />
+                  <span className="text-xs font-semibold">Searching societies...</span>
+                </div>
+              ) : searchQuery.length >= 2 && searchResults.length === 0 ? (
+                <div className="text-center py-6 text-xs font-semibold text-stone-400">
+                  No societies found matching your search.
+                </div>
+              ) : searchQuery.length < 2 ? (
+                <div className="text-center py-4 text-[11px] font-semibold text-stone-400/85">
+                  Type at least 2 characters to search the community directory.
+                </div>
+              ) : (
+                searchResults.map((loc) => (
+                  <button
+                    key={loc.id}
+                    onClick={async () => {
+                      try {
+                        const result = await dispatch(updateUserPrimaryLocation(loc.id))
+                        if (result.meta.requestStatus === 'fulfilled') {
+                          setChangeLocationModalOpen(false)
+                          setSearchQuery('')
+                          // reload feed to fetch new location content
+                          navigate('/feed')
+                          window.location.reload()
+                        }
+                      } catch (_) {
+                        toast.error('Failed to update location.')
+                      }
+                    }}
+                    className="w-full text-left p-3 border border-stone-150 hover:border-primary-350 bg-stone-50/40 hover:bg-primary-50/10 rounded-xl transition-all flex flex-col gap-0.5"
+                  >
+                    <span className="text-xs font-bold text-stone-750">{loc.name}</span>
+                    <span className="text-[10px] text-stone-400 font-semibold uppercase tracking-wider">
+                      {loc.type}
+                    </span>
+                  </button>
+                ))
+              )}
+            </div>
+
+          </div>
+        </div>
+      )}
     </header>
   )
 }

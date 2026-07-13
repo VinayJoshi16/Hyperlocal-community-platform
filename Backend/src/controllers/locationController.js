@@ -202,6 +202,57 @@ const joinLocation = asyncHandler(async (req, res) => {
   });
 });
 
+const updatePrimaryLocation = asyncHandler(async (req, res) => {
+  const { locationId } = req.body;
+  if (!locationId) return fail(res, 'locationId is required.', 400);
+
+  const location = await locationModel.findById(locationId);
+  if (!location) return fail(res, 'Location not found.', 404);
+
+  const userId = req.user.id;
+
+  // Clear existing location memberships for this user, then rebuild hierarchy
+  await query('DELETE FROM user_locations WHERE user_id = $1', [userId]);
+
+  let currentLocId = locationId;
+  while (currentLocId) {
+    const locRes = await query('SELECT id, parent_id, name, type FROM locations WHERE id = $1', [currentLocId]);
+    if (locRes.rows.length === 0) break;
+
+    const isPrimary = (currentLocId === locationId);
+    await query(
+      `INSERT INTO user_locations (user_id, location_id, is_primary)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (user_id, location_id) DO UPDATE SET is_primary = $3`,
+      [userId, currentLocId, isPrimary]
+    );
+
+    currentLocId = locRes.rows[0].parent_id;
+  }
+
+  // Fetch updated location list to return to frontend
+  const updatedLocations = await query(
+    `SELECT l.id, l.name, l.type, ul.is_primary, ul.joined_at
+     FROM user_locations ul
+     JOIN locations l ON l.id = ul.location_id
+     WHERE ul.user_id = $1
+     ORDER BY
+       CASE l.type
+         WHEN 'society' THEN 1
+         WHEN 'area'    THEN 2
+         WHEN 'city'    THEN 3
+         WHEN 'state'   THEN 4
+         WHEN 'country' THEN 5
+       END`,
+    [userId]
+  );
+
+  return ok(res, {
+    message: 'Primary location updated successfully.',
+    locations: updatedLocations.rows,
+  });
+});
+
 module.exports = {
   setUserLocation,
   getMyLocations,
@@ -209,4 +260,5 @@ module.exports = {
   searchLocations,
   joinLocation,
   resolveGps,
+  updatePrimaryLocation,
 };

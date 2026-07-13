@@ -119,6 +119,7 @@ export const locationAPI = {
   search:         (q)        => api.get('/location/search', { params: { q } }),
   getChildren:    (id)       => api.get(`/location/${id}/children`),
   join:           (id)       => api.post(`/location/join/${id}`),
+  updatePrimary:  (locationId) => api.post('/location/update-primary', { locationId }),
 }
 
 // ─── Posts API ────────────────────────────────────────────────────────────────
