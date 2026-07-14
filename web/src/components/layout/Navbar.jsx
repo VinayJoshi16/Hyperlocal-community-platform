@@ -65,7 +65,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-stone-200/90 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-      <div className="max-w-app mx-auto px-6 lg:px-10 h-16 flex items-center gap-3">
+      <div className="max-w-app mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center gap-2 sm:gap-3">
 
         {/* Hamburger - mobile only */}
         <button className="btn-ghost lg:hidden" onClick={() => dispatch(toggleSidebar())}>
@@ -87,10 +87,10 @@ export default function Navbar() {
             <button 
               id="tour-location"
               onClick={() => setLocationMenuOpen(!locationMenuOpen)}
-              className="flex items-center gap-1.5 text-sm text-stone-600 hover:bg-stone-100 px-3 py-1.5 rounded-lg"
+              className="flex items-center gap-1 sm:gap-1.5 text-sm text-stone-600 hover:bg-stone-100 px-2 sm:px-3 py-1.5 rounded-lg"
             >
               <MapPin size={14} className="text-primary-500" />
-              <span className="max-w-[140px] truncate font-medium">{activeLocation.name}</span>
+              <span className="max-w-[85px] xs:max-w-[125px] sm:max-w-[180px] truncate font-medium">{activeLocation.name}</span>
               <ChevronDown size={14} className="text-stone-400" />
             </button>
             {locationMenuOpen && (
