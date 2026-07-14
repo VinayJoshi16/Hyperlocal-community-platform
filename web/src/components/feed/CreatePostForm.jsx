@@ -311,7 +311,7 @@ export default function CreatePostForm() {
   const theme = CARD_THEMES[type] || CARD_THEMES.announcement
 
   return (
-    <div className={`card p-6 border rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-300 mb-6 ${theme.bg}`}>
+    <div id="tour-composer" className={`card p-6 border rounded-2xl shadow-[0_4px_24px_rgba(0,0,0,0.06)] transition-all duration-300 mb-6 ${theme.bg}`}>
       {/* ─── Header Section (Matching reference mockup) ─── */}
       <div className="flex justify-between items-start mb-4">
         <div className="text-left">

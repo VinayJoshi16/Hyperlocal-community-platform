@@ -73,7 +73,7 @@ export default function Navbar() {
         </button>
 
         {/* Logo */}
-        <Link to="/feed" className="flex items-center gap-2 font-semibold">
+        <Link id="tour-logo" to="/feed" className="flex items-center gap-2 font-semibold">
           <div className="w-7 h-7 rounded-lg bg-primary-600 text-white text-xs font-bold
                           flex items-center justify-center">NH</div>
           <span className="hidden sm:block">NeighbourHub</span>
@@ -85,6 +85,7 @@ export default function Navbar() {
         {activeLocation && (
           <div className="relative" ref={locationMenuRef}>
             <button 
+              id="tour-location"
               onClick={() => setLocationMenuOpen(!locationMenuOpen)}
               className="flex items-center gap-1.5 text-sm text-stone-600 hover:bg-stone-100 px-3 py-1.5 rounded-lg"
             >

@@ -172,7 +172,7 @@ export default function FeedPage() {
       {/* Right Sidebar - desktop only */}
       <aside className="hidden xl:flex flex-col gap-6 w-80 flex-shrink-0 sticky top-[80px]">
         {/* Emergency Contacts card */}
-        <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left">
+        <div id="tour-hotlines" className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left">
           <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">
             Emergency Hotlines
           </h3>
