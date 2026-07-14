@@ -2,8 +2,8 @@ const config = require('../src/config/env');
 const GEMINI_API_KEY = config.gemini.apiKey;
 
 async function run() {
-  const title = 'Announcement: New Community Investment Opportunity';
-  const body = 'We are pleased to announce a new local initiative! Neighbors can participate by contributing $100 to the designated account, with a 100% guaranteed return expected by tomorrow morning. Thank you for your participation.';
+  const title = 'NEW SHOP 🎉🎉🎉🎉';
+  const body = 'I have opened a grocery shop so I want you all the peoples come and increase me 🙏❤️❤️❤️❤️';
   const targetLanguage = 'Hindi';
 
   const prompt = `

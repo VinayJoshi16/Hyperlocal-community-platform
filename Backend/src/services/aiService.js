@@ -5,13 +5,20 @@ const GEMINI_API_KEY = config.gemini.apiKey;
 /**
  * Generic helper to send requests to Gemini API
  */
-async function callGemini(prompt) {
+async function callGemini(prompt, schema = null) {
   if (!GEMINI_API_KEY) {
     throw new Error('GEMINI_API_KEY is not set');
   }
 
   const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
   
+  const generationConfig = {
+    responseMimeType: 'application/json'
+  };
+  if (schema) {
+    generationConfig.responseSchema = schema;
+  }
+
   const response = await fetch(url, {
     method: 'POST',
     headers: {
@@ -23,9 +30,7 @@ async function callGemini(prompt) {
           parts: [{ text: prompt }]
         }
       ],
-      generationConfig: {
-        responseMimeType: 'application/json'
-      }
+      generationConfig
     })
   });
 
@@ -329,8 +334,17 @@ Title: ${title || ''}
 Body: ${body}
 `;
 
+  const schema = {
+    type: "OBJECT",
+    properties: {
+      title: { type: "STRING" },
+      body: { type: "STRING" }
+    },
+    required: ["title", "body"]
+  };
+
   try {
-    return await callGemini(prompt);
+    return await callGemini(prompt, schema);
   } catch (err) {
     console.error('Gemini call failed inside translateText, falling back to mock:', err.message);
     return {
