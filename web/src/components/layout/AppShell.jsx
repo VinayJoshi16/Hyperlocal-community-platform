@@ -8,6 +8,7 @@ import { selectEmergencyAlert, dismissEmergencyAlert } from '../../redux/slices/
 import Navbar          from './Navbar'
 import Sidebar         from './Sidebar'
 import EmergencyBanner from '../common/EmergencyBanner'
+import AppTour         from '../common/AppTour'
 
 export default function AppShell() {
   const dispatch    = useDispatch()
@@ -32,6 +33,7 @@ export default function AppShell() {
       )}
 
       <Navbar />
+      <AppTour />
 
       <div className="flex flex-1 w-full max-w-app mx-auto px-6 lg:px-10 gap-8 pt-6 pb-12">
 
