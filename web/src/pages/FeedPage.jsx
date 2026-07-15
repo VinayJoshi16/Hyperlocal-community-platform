@@ -198,13 +198,13 @@ export default function FeedPage() {
         {/* Quick Guidelines card */}
         <div className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left">
           <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-3">
-            Society Guidelines
+            Neighborhood Guidelines
           </h3>
           <ul className="space-y-2.5 text-xs text-stone-550 list-disc list-inside font-medium leading-relaxed">
-            <li>Keep public corridors clear of personal items.</li>
-            <li>Maintain quiet hours between 10:00 PM – 7:00 AM.</li>
-            <li>Ensure guest vehicles are registered at the main gate.</li>
-            <li>Segregate wet and dry garbage before disposal.</li>
+            <li>Respect quiet hours late at night to not disturb neighbors.</li>
+            <li>Keep streets and common areas clean by disposing litter properly.</li>
+            <li>Maintain safe driving speeds inside residential roads.</li>
+            <li>Report public hazards like broken streetlights to authorities.</li>
           </ul>
         </div>
       </aside>
