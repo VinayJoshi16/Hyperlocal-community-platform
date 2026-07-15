@@ -22,7 +22,7 @@ export default function AppShell() {
   }, [location.pathname, dispatch])
 
   return (
-    <div className="min-h-screen bg-stone-50 flex flex-col">
+    <div className="min-h-screen bg-transparent flex flex-col">
 
       {/* Emergency alert banner sits above everything */}
       {emergency && (
