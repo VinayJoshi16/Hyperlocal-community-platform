@@ -79,7 +79,7 @@ export default function FeedPage() {
     <div className="flex w-full gap-8 items-start">
       
       {/* Main Feed Column */}
-      <div className="flex-1 min-w-0">
+      <div className="flex-1 min-w-0 max-w-feed mx-auto w-full">
         {/* Emergency alert banner */}
         {emergencyAlert && (
           <div className="emergency-banner rounded-2xl mb-6 shadow-md flex items-center justify-between">

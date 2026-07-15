@@ -18,7 +18,7 @@ export default {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       maxWidth: {
-        feed: '1000px',   // wider readable layout for detail/profile pages
+        feed: '720px',   // balanced readable layout for feed/detail/profile pages
         app:  '1200px',
       },
       boxShadow: {
