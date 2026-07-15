@@ -27,7 +27,7 @@
     background-image: url('/neighborhood_bg.png');
     background-size: 320px 320px;
     background-repeat: repeat;
-    opacity: 0.04;
+    opacity: 0.08;
     pointer-events: none;
     z-index: -1;
   }
