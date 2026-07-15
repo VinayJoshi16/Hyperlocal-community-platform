@@ -35,10 +35,10 @@ export default function AppShell() {
       <Navbar />
       <AppTour />
 
-      <div className="flex flex-1 w-full max-w-app mx-auto px-6 lg:px-10 gap-8 pt-6 pb-12">
+      <div className="flex flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 gap-6 sm:gap-8 pt-6 pb-12">
 
         {/* Left sidebar - desktop only */}
-        <aside className="hidden lg:block lg:w-64 xl:w-72 flex-shrink-0">
+        <aside className="hidden lg:block lg:w-[260px] xl:w-[280px] flex-shrink-0">
           <div className="sticky top-20">
             <Sidebar />
           </div>

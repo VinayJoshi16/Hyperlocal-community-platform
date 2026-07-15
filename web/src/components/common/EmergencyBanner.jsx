@@ -6,7 +6,7 @@ export default function EmergencyBanner({ post, onDismiss }) {
 
   return (
     <div className="bg-red-600 text-white px-4 py-3 animate-fadeIn">
-      <div className="max-w-app mx-auto flex items-start gap-3">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 flex items-start gap-3">
 
         {/* Icon */}
         <AlertTriangle size={18} className="text-red-200 flex-shrink-0 mt-0.5" />

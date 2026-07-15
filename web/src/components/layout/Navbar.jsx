@@ -65,7 +65,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-20 bg-white border-b border-stone-200/90 shadow-[0_1px_2px_rgba(0,0,0,0.02)]">
-      <div className="max-w-app mx-auto px-4 sm:px-6 lg:px-10 h-16 flex items-center gap-2 sm:gap-3">
+      <div className="w-full px-4 sm:px-6 lg:px-8 xl:px-10 h-16 flex items-center gap-2 sm:gap-3">
 
         {/* Hamburger - mobile only */}
         <button className="btn-ghost lg:hidden" onClick={() => dispatch(toggleSidebar())}>
