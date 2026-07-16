@@ -14,6 +14,7 @@ const config = require('./src/config/env');
 const authRoutes = require('./src/routes/authRoutes');
 const locationRoutes = require('./src/routes/locationRoutes');
 const postRoutes = require('./src/routes/postRoutes');
+const circleRoutes = require('./src/routes/circleRoutes');
 const { errorMiddleware, notFoundMiddleware } = require('./src/middleware/errorMiddleware');
 
 const app = express();
@@ -72,6 +73,7 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/posts', postRoutes);
+app.use('/api/circles', circleRoutes);
 
 // ─── 404 handler (after all routes) ──────────────────────────────────────────
 app.use(notFoundMiddleware);

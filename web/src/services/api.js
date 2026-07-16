@@ -26,6 +26,10 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
+    const activeLocationId = localStorage.getItem('activeLocationId')
+    if (activeLocationId) {
+      config.headers['X-Active-Location-Id'] = activeLocationId
+    }
     return config
   },
   (error) => Promise.reject(error)
@@ -147,6 +151,35 @@ export const postsAPI = {
   react:            (postId, emoji)       => api.post(`/posts/${postId}/react`, { emoji }),
   vote:             (postId, optionIndex) => api.post(`/posts/${postId}/vote`, { optionIndex }),
   rsvp:             (postId)              => api.post(`/posts/${postId}/rsvp`),
+}
+
+export const circlesAPI = {
+  getCircles:         ()                   => api.get('/circles'),
+  createCircle:       (data)               => api.post('/circles', data),
+  getCircleDetails:   (id)                 => api.get(`/circles/${id}`),
+  join:               (id)                 => api.post(`/circles/${id}/join`),
+  updateSettings:     (id, data)           => api.patch(`/circles/${id}/settings`, data),
+  getMessages:        (id)                 => api.get(`/circles/${id}/messages`),
+  postMessage:        (id, message)        => api.post(`/circles/${id}/messages`, { message }),
+  markMessagesViewed: (id, messageIds)     => api.post(`/circles/${id}/messages/view`, { messageIds }),
+  
+  getPins:            (id)                 => api.get(`/circles/${id}/pins`),
+  addPin:             (id, content)        => api.post(`/circles/${id}/pins`, { content }),
+  deletePin:          (id, pinId)          => api.delete(`/circles/${id}/pins/${pinId}`),
+
+  getPolls:           (id)                 => api.get(`/circles/${id}/polls`),
+  createPoll:         (id, question, options) => api.post(`/circles/${id}/polls`, { question, options }),
+  votePoll:           (id, pollId, optionIndex) => api.post(`/circles/${id}/polls/${pollId}/vote`, { optionIndex }),
+
+  getEvents:          (id)                 => api.get(`/circles/${id}/events`),
+  createEvent:        (id, eventData)      => api.post(`/circles/${id}/events`, eventData),
+  toggleEvent:        (id, eventId)        => api.post(`/circles/${id}/events/${eventId}/toggle`),
+
+  searchUsers:        (q)                  => api.get('/circles/users/search', { params: { q } }),
+  addMember:          (id, targetUserId)   => api.post(`/circles/${id}/members`, { targetUserId }),
+  
+  getJoinRequests:    (id)                 => api.get(`/circles/${id}/requests`),
+  handleJoinRequest:  (id, targetUserId, action) => api.post(`/circles/${id}/requests/${targetUserId}`, { action }),
 }
 
 export default api

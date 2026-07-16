@@ -59,6 +59,18 @@ io.on('connection', (socket) => {
     socket.leave(`location:${locationId}`);
   });
 
+  socket.on('join_circle', ({ circleId }) => {
+    if (typeof circleId === 'string' && circleId.length > 0) {
+      socket.join(`circle:${circleId}`);
+    }
+  });
+
+  socket.on('leave_circle', ({ circleId }) => {
+    if (typeof circleId === 'string' && circleId.length > 0) {
+      socket.leave(`circle:${circleId}`);
+    }
+  });
+
   socket.on('disconnect', (reason) => {
     if (config.nodeEnv === 'development') {
       console.log(`Socket disconnected: ${socket.id} — ${reason}`);

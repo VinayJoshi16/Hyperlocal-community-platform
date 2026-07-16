@@ -1,8 +1,8 @@
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   Home, Calendar, Search, AlertTriangle,
-  Briefcase, BarChart2, MapPin, Plus, Megaphone,
+  Briefcase, BarChart2, MapPin, Plus, Megaphone, Users
 } from 'lucide-react'
 
 import { selectFeedFilter, setFeedFilter, setCreatePostOpen } from '../../redux/slices/uiSlice'
@@ -22,6 +22,7 @@ const POST_TYPES = [
 export default function Sidebar() {
   const dispatch       = useDispatch()
   const navigate       = useNavigate()
+  const location       = useLocation()
   const feedFilter     = useSelector(selectFeedFilter)
   const myLocations    = useSelector(selectMyLocations)
   const activeLocation = useSelector(selectActiveLocation)
@@ -76,6 +77,28 @@ export default function Sidebar() {
                 </li>
               )
             })}
+          </ul>
+        </div>
+
+        <div>
+          <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3 px-2">
+            Social
+          </p>
+          <ul className="flex flex-col gap-1">
+            <li>
+              <button
+                onClick={() => navigate('/circles')}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                            text-sm font-semibold transition-all duration-150 text-left
+                            ${location.pathname.startsWith('/circles')
+                              ? 'bg-primary-50 text-primary-700 font-bold'
+                              : 'text-stone-600 hover:bg-stone-100/70 hover:text-stone-850'
+                            }`}
+              >
+                <Users size={17} className={location.pathname.startsWith('/circles') ? 'text-primary-600' : 'text-stone-400'} />
+                <span>Community Circles</span>
+              </button>
+            </li>
           </ul>
         </div>
 

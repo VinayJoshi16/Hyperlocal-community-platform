@@ -81,6 +81,9 @@ const locationSlice = createSlice({
   reducers: {
     setActiveLocation(state, action) {
       state.activeLocation = action.payload
+      if (action.payload?.id) {
+        localStorage.setItem('activeLocationId', action.payload.id)
+      }
     },
     clearSearchResults(state) {
       state.searchResults = []
@@ -101,8 +104,11 @@ const locationSlice = createSlice({
         state.needsLocation = action.payload.length === 0
 
         if (action.payload.length > 0 && !state.activeLocation) {
-          state.activeLocation =
-            action.payload.find((l) => l.is_primary) || action.payload[0]
+          const active = action.payload.find((l) => l.is_primary) || action.payload[0]
+          state.activeLocation = active
+          if (active?.id) {
+            localStorage.setItem('activeLocationId', active.id)
+          }
         }
       })
       .addCase(fetchMyLocations.rejected, (state, action) => {

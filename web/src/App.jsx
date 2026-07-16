@@ -17,6 +17,8 @@ import RegisterPage   from './pages/RegisterPage'
 import FeedPage       from './pages/FeedPage'
 import PostDetailPage from './pages/PostDetailPage'
 import ProfilePage    from './pages/ProfilePage'
+import CirclesPage    from './pages/CirclesPage'
+import CircleChatPage from './pages/CircleChatPage'
 import NotFoundPage   from './pages/NotFoundPage'
 import AppShell       from './components/layout/AppShell'
 import SplashScreen   from './components/common/SplashScreen'
@@ -75,6 +77,8 @@ export default function App() {
         <Route path="/posts/:id"       element={<PostDetailPage />} />
         <Route path="/profile"         element={<ProfilePage />} />
         <Route path="/profile/:userId" element={<ProfilePage />} />
+        <Route path="/circles"         element={<CirclesPage />} />
+        <Route path="/circles/:id"     element={<CircleChatPage />} />
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Routes>
