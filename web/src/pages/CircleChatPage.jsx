@@ -159,7 +159,10 @@ export default function CircleChatPage() {
     socket.off('circle_poll_update')
     socket.on('circle_poll_update', ({ action, poll, pollId, votes }) => {
       if (action === 'create') {
-        setPolls((prev) => [poll, ...prev])
+        setPolls((prev) => {
+          if (prev.some((p) => p.id === poll.id)) return prev
+          return [poll, ...prev]
+        })
       } else if (action === 'vote') {
         setPolls((prev) =>
           prev.map((p) => (p.id === pollId ? { ...p, votes } : p))
@@ -171,7 +174,10 @@ export default function CircleChatPage() {
     socket.off('circle_pin_update')
     socket.on('circle_pin_update', ({ action, pin, pinId }) => {
       if (action === 'add') {
-        setPins((prev) => [pin, ...prev])
+        setPins((prev) => {
+          if (prev.some((p) => p.id === pin.id)) return prev
+          return [pin, ...prev]
+        })
       } else if (action === 'delete') {
         setPins((prev) => prev.filter((p) => p.id !== pinId))
       }
@@ -181,7 +187,10 @@ export default function CircleChatPage() {
     socket.off('circle_event_update')
     socket.on('circle_event_update', ({ action, event, eventId, count }) => {
       if (action === 'create') {
-        setEvents((prev) => [event, ...prev])
+        setEvents((prev) => {
+          if (prev.some((e) => e.id === event.id)) return prev
+          return [event, ...prev]
+        })
       } else if (action === 'join_toggle') {
         setEvents((prev) =>
           prev.map((e) => (e.id === eventId ? { ...e, participant_count: count } : e))
