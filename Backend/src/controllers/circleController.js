@@ -446,7 +446,7 @@ async function getCirclePolls(req, res) {
   try {
     const pollsRes = await query(
       `SELECT p.*, u.name as creator_name,
-              (SELECT option_index FROM circle_poll_votes WHERE poll_id = p.id AND user_id = $1) as my_vote
+              (SELECT option_index FROM circle_poll_votes WHERE poll_id = p.id AND user_id = $2) as my_vote
        FROM circle_polls p
        JOIN users u ON u.id = p.created_by
        WHERE p.circle_id = $1
@@ -574,7 +574,7 @@ async function getCircleEvents(req, res) {
     const eventsRes = await query(
       `SELECT e.*, u.name as creator_name,
               (SELECT COUNT(*)::int FROM circle_event_participants WHERE event_id = e.id) as participant_count,
-              EXISTS(SELECT 1 FROM circle_event_participants WHERE event_id = e.id AND user_id = $1) as joined
+              EXISTS(SELECT 1 FROM circle_event_participants WHERE event_id = e.id AND user_id = $2) as joined
        FROM circle_events e
        JOIN users u ON u.id = e.created_by
        WHERE e.circle_id = $1
