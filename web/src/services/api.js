@@ -162,6 +162,7 @@ export const circlesAPI = {
   getMessages:        (id)                 => api.get(`/circles/${id}/messages`),
   postMessage:        (id, message)        => api.post(`/circles/${id}/messages`, { message }),
   markMessagesViewed: (id, messageIds)     => api.post(`/circles/${id}/messages/view`, { messageIds }),
+  deleteMessage:      (id, messageId)      => api.delete(`/circles/${id}/messages/${messageId}`),
   
   getPins:            (id)                 => api.get(`/circles/${id}/pins`),
   addPin:             (id, content)        => api.post(`/circles/${id}/pins`, { content }),
@@ -170,10 +171,12 @@ export const circlesAPI = {
   getPolls:           (id)                 => api.get(`/circles/${id}/polls`),
   createPoll:         (id, question, options) => api.post(`/circles/${id}/polls`, { question, options }),
   votePoll:           (id, pollId, optionIndex) => api.post(`/circles/${id}/polls/${pollId}/vote`, { optionIndex }),
+  deletePoll:         (id, pollId)         => api.delete(`/circles/${id}/polls/${pollId}`),
 
   getEvents:          (id)                 => api.get(`/circles/${id}/events`),
   createEvent:        (id, eventData)      => api.post(`/circles/${id}/events`, eventData),
   toggleEvent:        (id, eventId)        => api.post(`/circles/${id}/events/${eventId}/toggle`),
+  deleteEvent:        (id, eventId)        => api.delete(`/circles/${id}/events/${eventId}`),
 
   searchUsers:        (q)                  => api.get('/circles/users/search', { params: { q } }),
   addMember:          (id, targetUserId)   => api.post(`/circles/${id}/members`, { targetUserId }),

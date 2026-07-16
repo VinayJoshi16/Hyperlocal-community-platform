@@ -22,7 +22,10 @@ const {
   searchNeighborhoodUsers,
   addCircleMember,
   getJoinRequests,
-  handleJoinRequest
+  handleJoinRequest,
+  deleteCircleMessage,
+  deleteCirclePoll,
+  deleteCircleEvent
 } = require('../controllers/circleController');
 
 // All routes require token authentication
@@ -47,6 +50,7 @@ router.post('/:id/requests/:targetUserId', handleJoinRequest);
 router.get('/:id/messages', getCircleMessages);
 router.post('/:id/messages', postCircleMessage);
 router.post('/:id/messages/view', markMessagesViewed);
+router.delete('/:id/messages/:messageId', deleteCircleMessage);
 
 // Notice board (Pins)
 router.get('/:id/pins', getCirclePins);
@@ -57,10 +61,12 @@ router.delete('/:id/pins/:pinId', deleteCirclePin);
 router.get('/:id/polls', getCirclePolls);
 router.post('/:id/polls', createCirclePoll);
 router.post('/:id/polls/:pollId/vote', voteCirclePoll);
+router.delete('/:id/polls/:pollId', deleteCirclePoll);
 
 // Sidebar Events
 router.get('/:id/events', getCircleEvents);
 router.post('/:id/events', createCircleEvent);
 router.post('/:id/events/:eventId/toggle', toggleJoinCircleEvent);
+router.delete('/:id/events/:eventId', deleteCircleEvent);
 
 module.exports = router;

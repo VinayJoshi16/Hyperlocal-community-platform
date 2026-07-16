@@ -144,6 +144,12 @@ export default function CircleChatPage() {
       })
     })
 
+    // Delete message socket broadcast
+    socket.off('circle_message_delete')
+    socket.on('circle_message_delete', ({ messageId }) => {
+      setMessages((prev) => prev.filter((m) => m.id !== messageId))
+    })
+
     // Update read Receipts
     socket.off('circle_messages_viewed')
     socket.on('circle_messages_viewed', ({ user_id, message_ids }) => {
@@ -167,6 +173,8 @@ export default function CircleChatPage() {
         setPolls((prev) =>
           prev.map((p) => (p.id === pollId ? { ...p, votes } : p))
         )
+      } else if (action === 'delete') {
+        setPolls((prev) => prev.filter((p) => p.id !== pollId))
       }
     })
 
@@ -195,6 +203,8 @@ export default function CircleChatPage() {
         setEvents((prev) =>
           prev.map((e) => (e.id === eventId ? { ...e, participant_count: count } : e))
         )
+      } else if (action === 'delete') {
+        setEvents((prev) => prev.filter((e) => e.id !== eventId))
       }
     })
 
@@ -319,6 +329,39 @@ export default function CircleChatPage() {
       toast.success(res.data.joined ? 'You joined the event!' : 'You left the event')
     } catch (err) {
       toast.error('Failed to join/leave event')
+    }
+  }
+
+  async function handleDeleteMessage(messageId) {
+    if (!window.confirm('Are you sure you want to delete this message?')) return
+    try {
+      await circlesAPI.deleteMessage(id, messageId)
+      setMessages((prev) => prev.filter((m) => m.id !== messageId))
+      toast.success('Message deleted')
+    } catch (err) {
+      toast.error('Failed to delete message')
+    }
+  }
+
+  async function handleDeleteEvent(eventId) {
+    if (!window.confirm('Are you sure you want to cancel and delete this event?')) return
+    try {
+      await circlesAPI.deleteEvent(id, eventId)
+      setEvents((prev) => prev.filter((e) => e.id !== eventId))
+      toast.success('Event deleted')
+    } catch (err) {
+      toast.error('Failed to delete event')
+    }
+  }
+
+  async function handleDeletePoll(pollId) {
+    if (!window.confirm('Are you sure you want to delete this poll?')) return
+    try {
+      await circlesAPI.deletePoll(id, pollId)
+      setPolls((prev) => prev.filter((p) => p.id !== pollId))
+      toast.success('Poll deleted')
+    } catch (err) {
+      toast.error('Failed to delete poll')
     }
   }
 
@@ -456,7 +499,7 @@ export default function CircleChatPage() {
                   return (
                     <div
                       key={msg.id}
-                      className={`flex gap-3 text-left ${isOwn ? 'justify-end' : 'justify-start'}`}
+                      className={`flex gap-3 text-left relative group ${isOwn ? 'justify-end' : 'justify-start'}`}
                     >
                       {/* Sender avatar - incoming only */}
                       {!isOwn && (
@@ -474,7 +517,19 @@ export default function CircleChatPage() {
                         )}
 
                         {/* Bubble */}
-                        <div className="flex items-end gap-1.5">
+                        <div className="flex items-end gap-1.5 relative">
+                          {/* Trash button for admins to delete other users' messages or creators to delete their own */}
+                          {(isOwn || circle.my_role === 'admin') && (
+                            <button
+                              onClick={() => handleDeleteMessage(msg.id)}
+                              className={`opacity-0 group-hover:opacity-100 p-1 text-stone-450 hover:text-red-500 transition-opacity absolute top-1 ${
+                                isOwn ? '-left-6' : '-right-6'
+                              }`}
+                              title="Delete message"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          )}
                           <div
                             className={`p-3 rounded-2xl text-xs leading-relaxed shadow-sm font-medium ${
                               isOwn
@@ -551,12 +606,22 @@ export default function CircleChatPage() {
                 <p className="text-[11px] text-stone-400 italic">No community events planned.</p>
               ) : (
                 events.map((ev) => (
-                  <div key={ev.id} className="p-3 bg-stone-50/50 border border-stone-150 rounded-2xl text-left space-y-2">
+                  <div key={ev.id} className="p-3 bg-stone-50/50 border border-stone-150 rounded-2xl text-left space-y-2 relative group">
+                    {/* Delete Event Button */}
+                    {(ev.created_by === user.id || circle.my_role === 'admin') && (
+                      <button
+                        onClick={() => handleDeleteEvent(ev.id)}
+                        className="absolute bottom-2.5 right-2.5 text-stone-450 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                        title="Delete Event"
+                      >
+                        <Trash2 size={12} />
+                      </button>
+                    )}
                     <div className="flex items-center justify-between gap-2">
-                      <h4 className="text-xs font-bold text-stone-850 truncate">{ev.title}</h4>
+                      <h4 className="text-xs font-bold text-stone-850 truncate pr-6">{ev.title}</h4>
                       <button
                         onClick={() => handleToggleEventJoin(ev.id)}
-                        className={`h-6 px-2.5 rounded-lg text-[10px] font-bold border transition-colors flex items-center gap-1 ${
+                        className={`h-6 px-2.5 rounded-lg text-[10px] font-bold border transition-colors flex items-center gap-1 flex-shrink-0 ${
                           ev.joined 
                             ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
                             : 'bg-white border-stone-200 text-stone-600 hover:bg-stone-50'
@@ -683,8 +748,18 @@ export default function CircleChatPage() {
                 polls.map((poll) => {
                   const totalVotes = poll.votes.reduce((a, b) => a + b, 0)
                   return (
-                    <div key={poll.id} className="space-y-2.5 p-3.5 bg-stone-50/50 border border-stone-150 rounded-2xl text-left">
-                      <h4 className="text-xs font-bold text-stone-850 leading-snug">{poll.question}</h4>
+                    <div key={poll.id} className="space-y-2.5 p-3.5 bg-stone-50/50 border border-stone-150 rounded-2xl text-left relative group">
+                      {/* Delete Poll Button */}
+                      {(poll.created_by === user.id || circle.my_role === 'admin') && (
+                        <button
+                          onClick={() => handleDeletePoll(poll.id)}
+                          className="absolute top-2.5 right-2.5 text-stone-450 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Delete Poll"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      )}
+                      <h4 className="text-xs font-bold text-stone-850 leading-snug pr-6">{poll.question}</h4>
                       
                       <div className="space-y-2">
                         {poll.options.map((opt, optIdx) => {

@@ -807,6 +807,111 @@ async function handleJoinRequest(req, res) {
   }
 }
 
+/**
+ * Delete a chat message
+ */
+async function deleteCircleMessage(req, res) {
+  const userId = req.user.id;
+  const { id: circleId, messageId } = req.params;
+
+  try {
+    const role = await checkMembership(circleId, userId);
+    const msgRes = await query('SELECT user_id FROM circle_messages WHERE id = $1', [messageId]);
+    if (msgRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+    const message = msgRes.rows[0];
+
+    const isAuthor = message.user_id === userId;
+    const isAdmin = role === 'admin';
+    if (!isAuthor && !isAdmin) {
+      return res.status(403).json({ error: 'Only the author or group admin can delete messages' });
+    }
+
+    await query('DELETE FROM circle_messages WHERE id = $1', [messageId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${circleId}`).emit('circle_message_delete', { messageId });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in deleteCircleMessage:', err.message);
+    res.status(500).json({ error: 'Failed to delete message' });
+  }
+}
+
+/**
+ * Delete a live poll
+ */
+async function deleteCirclePoll(req, res) {
+  const userId = req.user.id;
+  const { id: circleId, pollId } = req.params;
+
+  try {
+    const role = await checkMembership(circleId, userId);
+    const pollRes = await query('SELECT created_by FROM circle_polls WHERE id = $1', [pollId]);
+    if (pollRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Poll not found' });
+    }
+    const poll = pollRes.rows[0];
+
+    const isCreator = poll.created_by === userId;
+    const isAdmin = role === 'admin';
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ error: 'Only the poll creator or group admin can delete polls' });
+    }
+
+    await query('DELETE FROM circle_polls WHERE id = $1', [pollId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${circleId}`).emit('circle_poll_update', { action: 'delete', pollId });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in deleteCirclePoll:', err.message);
+    res.status(500).json({ error: 'Failed to delete poll' });
+  }
+}
+
+/**
+ * Delete a scheduled event
+ */
+async function deleteCircleEvent(req, res) {
+  const userId = req.user.id;
+  const { id: circleId, eventId } = req.params;
+
+  try {
+    const role = await checkMembership(circleId, userId);
+    const eventRes = await query('SELECT created_by FROM circle_events WHERE id = $1', [eventId]);
+    if (eventRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Event not found' });
+    }
+    const event = eventRes.rows[0];
+
+    const isCreator = event.created_by === userId;
+    const isAdmin = role === 'admin';
+    if (!isCreator && !isAdmin) {
+      return res.status(403).json({ error: 'Only the event creator or group admin can delete events' });
+    }
+
+    await query('DELETE FROM circle_events WHERE id = $1', [eventId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${circleId}`).emit('circle_event_update', { action: 'delete', eventId });
+    }
+
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in deleteCircleEvent:', err.message);
+    res.status(500).json({ error: 'Failed to delete event' });
+  }
+}
+
 module.exports = {
   getCircles,
   createCircle,
@@ -828,5 +933,8 @@ module.exports = {
   searchNeighborhoodUsers,
   addCircleMember,
   getJoinRequests,
-  handleJoinRequest
+  handleJoinRequest,
+  deleteCircleMessage,
+  deleteCirclePoll,
+  deleteCircleEvent
 };
