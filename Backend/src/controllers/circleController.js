@@ -217,8 +217,8 @@ async function updateCircleSettings(req, res) {
 
   try {
     const role = await checkMembership(id, userId);
-    if (role !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can modify circle settings' });
+    if (role !== 'admin' && role !== 'owner') {
+      return res.status(403).json({ error: 'Only group owners or administrators can modify circle settings' });
     }
 
     const updatedRes = await query(
@@ -732,8 +732,8 @@ async function addCircleMember(req, res) {
     const circleRes = await query('SELECT privacy FROM circles WHERE id = $1', [id]);
     if (circleRes.rows.length === 0) return res.status(404).json({ error: 'Circle not found' });
     
-    if (circleRes.rows[0].privacy === 'invite_only' && role !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can add members to this circle' });
+    if (circleRes.rows[0].privacy === 'invite_only' && role !== 'admin' && role !== 'owner') {
+      return res.status(403).json({ error: 'Only group owners or administrators can add members to this circle' });
     }
     if (!role) {
       return res.status(403).json({ error: 'You must be a member to add others' });
@@ -767,8 +767,8 @@ async function getJoinRequests(req, res) {
 
   try {
     const role = await checkMembership(id, userId);
-    if (role !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can view join requests' });
+    if (role !== 'admin' && role !== 'owner') {
+      return res.status(403).json({ error: 'Only group owners or administrators can view join requests' });
     }
 
     const requestsRes = await query(
@@ -792,8 +792,8 @@ async function handleJoinRequest(req, res) {
 
   try {
     const role = await checkMembership(id, userId);
-    if (role !== 'admin') {
-      return res.status(403).json({ error: 'Only admins can process join requests' });
+    if (role !== 'admin' && role !== 'owner') {
+      return res.status(403).json({ error: 'Only group owners or administrators can process join requests' });
     }
 
     if (action === 'approve') {
@@ -840,9 +840,9 @@ async function deleteCircleMessage(req, res) {
     const message = msgRes.rows[0];
 
     const isAuthor = message.user_id === userId;
-    const isAdmin = role === 'admin';
+    const isAdmin = role === 'admin' || role === 'owner';
     if (!isAuthor && !isAdmin) {
-      return res.status(403).json({ error: 'Only the author or group admin can delete messages' });
+      return res.status(403).json({ error: 'Only the author, group owner or admin can delete messages' });
     }
 
     await query('DELETE FROM circle_messages WHERE id = $1', [messageId]);
@@ -875,9 +875,9 @@ async function deleteCirclePoll(req, res) {
     const poll = pollRes.rows[0];
 
     const isCreator = poll.created_by === userId;
-    const isAdmin = role === 'admin';
+    const isAdmin = role === 'admin' || role === 'owner';
     if (!isCreator && !isAdmin) {
-      return res.status(403).json({ error: 'Only the poll creator or group admin can delete polls' });
+      return res.status(403).json({ error: 'Only the poll creator, group owner or admin can delete polls' });
     }
 
     await query('DELETE FROM circle_polls WHERE id = $1', [pollId]);
@@ -910,9 +910,9 @@ async function deleteCircleEvent(req, res) {
     const event = eventRes.rows[0];
 
     const isCreator = event.created_by === userId;
-    const isAdmin = role === 'admin';
+    const isAdmin = role === 'admin' || role === 'owner';
     if (!isCreator && !isAdmin) {
-      return res.status(403).json({ error: 'Only the event creator or group admin can delete events' });
+      return res.status(403).json({ error: 'Only the event creator, group owner or admin can delete events' });
     }
 
     await query('DELETE FROM circle_events WHERE id = $1', [eventId]);
