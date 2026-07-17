@@ -183,6 +183,16 @@ export const circlesAPI = {
   
   getJoinRequests:    (id)                 => api.get(`/circles/${id}/requests`),
   handleJoinRequest:  (id, targetUserId, action) => api.post(`/circles/${id}/requests/${targetUserId}`, { action }),
+
+  updateName:         (id, name)           => api.patch(`/circles/${id}/name`, { name }),
+  updateImage:        (id, image_url)      => api.patch(`/circles/${id}/image`, { image_url }),
+  updateDescription:  (id, description)    => api.patch(`/circles/${id}/description`, { description }),
+  promoteAdmin:       (id, userId)         => api.post(`/circles/${id}/admins`, { userId }),
+  demoteAdmin:        (id, userId)         => api.delete(`/circles/${id}/admins/${userId}`),
+  transferOwnership:  (id, userId)         => api.post(`/circles/${id}/transfer-owner`, { userId }),
+  deleteCircle:       (id)                 => api.delete(`/circles/${id}`),
+  removeMember:       (id, userId)         => api.delete(`/circles/${id}/members/${userId}`),
+  deleteMessageAdmin: (id, messageId)      => api.delete(`/circles/${id}/messages/${messageId}/admin`),
 }
 
 export const notificationsAPI = {

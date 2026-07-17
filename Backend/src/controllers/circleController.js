@@ -79,20 +79,20 @@ async function createCircle(req, res) {
   try {
     // 1. Insert circle
     const circleRes = await query(
-      `INSERT INTO circles (name, description, image_url, privacy, created_by, location_id, last_message, last_message_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+      `INSERT INTO circles (name, description, image_url, privacy, created_by, owner_id, location_id, last_message, last_message_at)
+       VALUES ($1, $2, $3, $4, $5, $5, $6, $7, NOW())
        RETURNING *`,
       [name.trim(), description || '', image_url || null, privacy || 'public', userId, locationId, 'Circle created 🎉']
     );
     const circle = circleRes.rows[0];
 
-    // 2. Add creator as admin
+    // 2. Add creator as owner
     await query(
       'INSERT INTO circle_members (circle_id, user_id, role) VALUES ($1, $2, $3)',
-      [circle.id, userId, 'admin']
+      [circle.id, userId, 'owner']
     );
 
-    res.status(201).json({ ...circle, my_role: 'admin', member_count: 1, unread_count: 0 });
+    res.status(201).json({ ...circle, my_role: 'owner', member_count: 1, unread_count: 0 });
   } catch (err) {
     console.error('Error in createCircle:', err.message);
     res.status(500).json({ error: 'Failed to create circle' });
@@ -135,10 +135,27 @@ async function getCircleDetails(req, res) {
       }
     }
 
+    // Fetch members of this circle with their details
+    const membersRes = await query(
+      `SELECT u.id, u.name, u.email, u.avatar_url, cm.role, cm.joined_at
+       FROM circle_members cm
+       JOIN users u ON u.id = cm.user_id
+       WHERE cm.circle_id = $1
+       ORDER BY 
+         CASE cm.role
+           WHEN 'owner' THEN 1
+           WHEN 'admin' THEN 2
+           ELSE 3
+         END,
+         cm.joined_at ASC`,
+      [id]
+    );
+
     res.json({
       ...circle,
       my_role: role,
-      join_request_status: joinRequestStatus
+      join_request_status: joinRequestStatus,
+      members: membersRes.rows
     });
   } catch (err) {
     console.error('Error in getCircleDetails:', err.message);
@@ -912,6 +929,296 @@ async function deleteCircleEvent(req, res) {
   }
 }
 
+/**
+ * Owner updates circle name
+ */
+async function updateCircleName(req, res) {
+  const { id } = req.params;
+  const { name } = req.body;
+
+  if (!name || name.trim().length < 3 || name.trim().length > 50) {
+    return res.status(400).json({ error: 'Circle name must be between 3 and 50 characters' });
+  }
+
+  try {
+    await query('UPDATE circles SET name = $1 WHERE id = $2', [name.trim(), id]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_update', { name: name.trim() });
+    }
+
+    console.log(`[Moderation] Circle ${id} renamed to: ${name.trim()} by owner ${req.user.id}`);
+    res.json({ success: true, name: name.trim() });
+  } catch (err) {
+    console.error('Error in updateCircleName:', err.message);
+    res.status(500).json({ error: 'Failed to update name' });
+  }
+}
+
+/**
+ * Owner updates circle image
+ */
+async function updateCircleImage(req, res) {
+  const { id } = req.params;
+  const { image_url } = req.body;
+
+  try {
+    await query('UPDATE circles SET image_url = $1 WHERE id = $2', [image_url || null, id]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_update', { image_url: image_url || null });
+    }
+
+    console.log(`[Moderation] Circle ${id} image updated by owner ${req.user.id}`);
+    res.json({ success: true, image_url: image_url || null });
+  } catch (err) {
+    console.error('Error in updateCircleImage:', err.message);
+    res.status(500).json({ error: 'Failed to update image' });
+  }
+}
+
+/**
+ * Owner updates circle description
+ */
+async function updateCircleDescription(req, res) {
+  const { id } = req.params;
+  const { description } = req.body;
+
+  try {
+    await query('UPDATE circles SET description = $1 WHERE id = $2', [description || '', id]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_update', { description: description || '' });
+    }
+
+    console.log(`[Moderation] Circle ${id} description updated by owner ${req.user.id}`);
+    res.json({ success: true, description: description || '' });
+  } catch (err) {
+    console.error('Error in updateCircleDescription:', err.message);
+    res.status(500).json({ error: 'Failed to update description' });
+  }
+}
+
+/**
+ * Owner promotes member to admin
+ */
+async function promoteCircleAdmin(req, res) {
+  const { id } = req.params;
+  const { userId } = req.body;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'User ID is required' });
+  }
+
+  try {
+    const memberRes = await query('SELECT 1 FROM circle_members WHERE circle_id = $1 AND user_id = $2', [id, userId]);
+    if (memberRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User is not a member of this circle' });
+    }
+
+    await query(
+      "UPDATE circle_members SET role = 'admin' WHERE circle_id = $1 AND user_id = $2",
+      [id, userId]
+    );
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_member_update', { userId, role: 'admin' });
+    }
+
+    console.log(`[Moderation] User ${userId} promoted to admin in circle ${id} by owner ${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in promoteCircleAdmin:', err.message);
+    res.status(500).json({ error: 'Failed to promote member' });
+  }
+}
+
+/**
+ * Owner demotes admin back to member
+ */
+async function demoteCircleAdmin(req, res) {
+  const { id, userId } = req.params;
+
+  try {
+    const memberRes = await query('SELECT role FROM circle_members WHERE circle_id = $1 AND user_id = $2', [id, userId]);
+    if (memberRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User is not a member of this circle' });
+    }
+
+    if (memberRes.rows[0].role === 'owner') {
+      return res.status(400).json({ error: 'Cannot demote the owner' });
+    }
+
+    await query(
+      "UPDATE circle_members SET role = 'member' WHERE circle_id = $1 AND user_id = $2",
+      [id, userId]
+    );
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_member_update', { userId, role: 'member' });
+    }
+
+    console.log(`[Moderation] Admin ${userId} demoted to member in circle ${id} by owner ${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in demoteCircleAdmin:', err.message);
+    res.status(500).json({ error: 'Failed to demote admin' });
+  }
+}
+
+/**
+ * Owner transfers group ownership to another member
+ */
+async function transferCircleOwnership(req, res) {
+  const { id } = req.params;
+  const { userId } = req.body;
+  const oldOwnerId = req.user.id;
+
+  if (!userId) {
+    return res.status(400).json({ error: 'Target User ID is required' });
+  }
+  if (userId === oldOwnerId) {
+    return res.status(400).json({ error: 'Cannot transfer ownership to yourself' });
+  }
+
+  try {
+    const memberRes = await query('SELECT 1 FROM circle_members WHERE circle_id = $1 AND user_id = $2', [id, userId]);
+    if (memberRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Target user is not a member of this circle' });
+    }
+
+    // Begin Transaction
+    await query('BEGIN');
+
+    // 1. Update circles table owner_id
+    await query('UPDATE circles SET owner_id = $1 WHERE id = $2', [userId, id]);
+
+    // 2. Set old owner role to 'admin'
+    await query("UPDATE circle_members SET role = 'admin' WHERE circle_id = $1 AND user_id = $2", [id, oldOwnerId]);
+
+    // 3. Set new owner role to 'owner'
+    await query("UPDATE circle_members SET role = 'owner' WHERE circle_id = $1 AND user_id = $2", [id, userId]);
+
+    await query('COMMIT');
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_owner_transferred', { oldOwnerId, newOwnerId: userId });
+    }
+
+    console.log(`[Moderation] Circle ${id} ownership transferred from ${oldOwnerId} to ${userId}`);
+    res.json({ success: true });
+  } catch (err) {
+    await query('ROLLBACK');
+    console.error('Error in transferCircleOwnership:', err.message);
+    res.status(500).json({ error: 'Failed to transfer ownership' });
+  }
+}
+
+/**
+ * Owner deletes the circle
+ */
+async function deleteCircle(req, res) {
+  const { id } = req.params;
+
+  try {
+    await query('DELETE FROM circles WHERE id = $1', [id]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_deleted', { circleId: id });
+    }
+
+    console.log(`[Moderation] Circle ${id} deleted by owner ${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in deleteCircle:', err.message);
+    res.status(500).json({ error: 'Failed to delete circle' });
+  }
+}
+
+/**
+ * Kick a member, or user leaves the circle
+ */
+async function removeCircleMember(req, res) {
+  const { id, userId } = req.params;
+  const currentUserId = req.user.id;
+
+  try {
+    const targetMemberRes = await query('SELECT role FROM circle_members WHERE circle_id = $1 AND user_id = $2', [id, userId]);
+    if (targetMemberRes.rows.length === 0) {
+      return res.status(404).json({ error: 'User is not a member of this circle' });
+    }
+    const targetRole = targetMemberRes.rows[0].role;
+    const isSelf = userId === currentUserId;
+
+    if (isSelf) {
+      // User is leaving
+      if (targetRole === 'owner') {
+        return res.status(400).json({ error: 'Owner cannot leave before transferring ownership' });
+      }
+    } else {
+      // User is being kicked. Check permissions:
+      // req.circleMemberRole holds current user's role ('owner', 'admin')
+      if (req.circleMemberRole === 'admin') {
+        if (targetRole === 'owner' || targetRole === 'admin') {
+          return res.status(403).json({ error: 'Admins cannot remove other admins or the owner' });
+        }
+      }
+    }
+
+    // Delete membership row
+    await query('DELETE FROM circle_members WHERE circle_id = $1 AND user_id = $2', [id, userId]);
+
+    // Delete any pending requests
+    await query('DELETE FROM circle_join_requests WHERE circle_id = $1 AND user_id = $2', [id, userId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${id}`).emit('circle_member_removed', { userId });
+    }
+
+    console.log(`[Moderation] User ${userId} left/kicked from circle ${id} (action by ${currentUserId})`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in removeCircleMember:', err.message);
+    res.status(500).json({ error: 'Failed to remove member' });
+  }
+}
+
+/**
+ * Admin replaces message with placeholder text instead of deleting permanently
+ */
+async function deleteCircleMessageAdmin(req, res) {
+  const { id: circleId, messageId } = req.params;
+
+  try {
+    const msgRes = await query('SELECT 1 FROM circle_messages WHERE id = $1 AND circle_id = $2', [messageId, circleId]);
+    if (msgRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Message not found' });
+    }
+
+    const replacement = 'This message was removed by an administrator.';
+    await query('UPDATE circle_messages SET message = $1 WHERE id = $2', [replacement, messageId]);
+
+    const io = req.app.get('io');
+    if (io) {
+      io.to(`circle:${circleId}`).emit('circle_message_moderated', { messageId, replacementText: replacement });
+    }
+
+    console.log(`[Moderation] Message ${messageId} in circle ${circleId} moderated by admin ${req.user.id}`);
+    res.json({ success: true });
+  } catch (err) {
+    console.error('Error in deleteCircleMessageAdmin:', err.message);
+    res.status(500).json({ error: 'Failed to moderate message' });
+  }
+}
+
 module.exports = {
   getCircles,
   createCircle,
@@ -936,5 +1243,15 @@ module.exports = {
   handleJoinRequest,
   deleteCircleMessage,
   deleteCirclePoll,
-  deleteCircleEvent
+  deleteCircleEvent,
+  updateCircleName,
+  updateCircleImage,
+  updateCircleDescription,
+  promoteCircleAdmin,
+  demoteCircleAdmin,
+  transferCircleOwnership,
+  deleteCircle,
+  removeCircleMember,
+  deleteCircleMessageAdmin
 };
+

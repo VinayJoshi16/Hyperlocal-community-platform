@@ -3,14 +3,15 @@ import { useParams, useNavigate } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { 
   Send, Users, Calendar, AlertTriangle, ArrowLeft, Plus, Trash2, 
-  CheckCircle, Shield, Globe, Lock, EyeOff, MapPin, Clock, Info, Check 
+  CheckCircle, Shield, Globe, Lock, EyeOff, MapPin, Clock, Info, Check,
+  Camera, Edit2, X, LogOut, Crown, ShieldAlert
 } from 'lucide-react'
 import toast from 'react-hot-toast'
 import { formatDistanceToNow, format } from 'date-fns'
 
 import { selectUser } from '../redux/slices/authSlice'
 import { selectActiveLocation } from '../redux/slices/locationSlice'
-import { circlesAPI } from '../services/api'
+import { circlesAPI, postsAPI } from '../services/api'
 import { getSocket } from '../services/socket'
 
 const COLORS = [
@@ -46,6 +47,14 @@ export default function CircleChatPage() {
   const [events, setEvents] = useState([])
   const [members, setMembers] = useState([])
   const [joinRequests, setJoinRequests] = useState([])
+
+  // Group Info Drawer States
+  const [isInfoOpen, setIsInfoOpen] = useState(false)
+  const [isEditingName, setIsEditingName] = useState(false)
+  const [editedName, setEditedName] = useState('')
+  const [isEditingDesc, setIsEditingDesc] = useState(false)
+  const [editedDesc, setEditedDesc] = useState('')
+  const [isUploadingImage, setIsUploadingImage] = useState(false)
 
   // Sidebar Modals / Forms States
   const [pinInput, setPinInput] = useState('')
@@ -95,6 +104,11 @@ export default function CircleChatPage() {
       // 1. Get circle profile + member status
       const detailsRes = await circlesAPI.getCircleDetails(id)
       setCircle(detailsRes.data)
+      setEditedName(detailsRes.data.name)
+      setEditedDesc(detailsRes.data.description || '')
+      if (detailsRes.data.members) {
+        setMembers(detailsRes.data.members)
+      }
 
       if (detailsRes.data.my_role) {
         // 2. Load sub-widgets
@@ -212,6 +226,61 @@ export default function CircleChatPage() {
     socket.off('circle_member_added')
     socket.on('circle_member_added', () => {
       loadCircleDetails()
+    })
+
+    // Group metadata settings update (name, image, description)
+    socket.off('circle_update')
+    socket.on('circle_update', (updatedData) => {
+      setCircle((prev) => prev ? { ...prev, ...updatedData } : prev)
+    })
+
+    // Group deleted by owner
+    socket.off('circle_deleted')
+    socket.on('circle_deleted', () => {
+      toast('This community circle has been deleted by the owner', { icon: '🗑️' })
+      navigate('/circles')
+    })
+
+    // Member role update (promote/demote)
+    socket.off('circle_member_update')
+    socket.on('circle_member_update', ({ userId: memberId, role: newRole }) => {
+      if (memberId === user.id) {
+        setCircle((prev) => prev ? { ...prev, my_role: newRole } : prev)
+        toast(`Your role has been updated to: ${newRole.toUpperCase()}`, { icon: '🛡️' })
+      }
+      loadCircleDetails()
+    })
+
+    // Ownership transferred
+    socket.off('circle_owner_transferred')
+    socket.on('circle_owner_transferred', ({ oldOwnerId, newOwnerId }) => {
+      if (oldOwnerId === user.id) {
+        setCircle((prev) => prev ? { ...prev, my_role: 'admin' } : prev)
+        toast.success('Ownership transferred. You are now an Admin.')
+      } else if (newOwnerId === user.id) {
+        setCircle((prev) => prev ? { ...prev, my_role: 'owner' } : prev)
+        toast.success('You are now the Owner of this community group!')
+      }
+      loadCircleDetails()
+    })
+
+    // Member kicked or left
+    socket.off('circle_member_removed')
+    socket.on('circle_member_removed', ({ userId: removedUserId }) => {
+      if (removedUserId === user.id) {
+        toast('You have been removed from this community circle', { icon: '🚪' })
+        navigate('/circles')
+        return
+      }
+      loadCircleDetails()
+    })
+
+    // Message moderated by admin/owner
+    socket.off('circle_message_moderated')
+    socket.on('circle_message_moderated', ({ messageId, replacementText }) => {
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === messageId ? { ...msg, message: replacementText } : msg))
+      )
     })
   }
 
@@ -407,6 +476,146 @@ export default function CircleChatPage() {
     }
   }
 
+  // Settings & Roles Handlers
+  async function handleUpdateName() {
+    if (!editedName.trim() || editedName.trim().length < 3 || editedName.trim().length > 50) {
+      toast.error('Circle name must be between 3 and 50 characters')
+      return
+    }
+    try {
+      await circlesAPI.updateName(id, editedName.trim())
+      setCircle((prev) => prev ? { ...prev, name: editedName.trim() } : null)
+      setIsEditingName(false)
+      toast.success('Group name updated!')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update group name')
+    }
+  }
+
+  async function handleUpdateDesc() {
+    try {
+      await circlesAPI.updateDescription(id, editedDesc.trim())
+      setCircle((prev) => prev ? { ...prev, description: editedDesc.trim() } : null)
+      setIsEditingDesc(false)
+      toast.success('Group description updated!')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to update description')
+    }
+  }
+
+  async function handleImageUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('image', file)
+
+    setIsUploadingImage(true)
+    const toastId = toast.loading('Uploading avatar...')
+    try {
+      const uploadRes = await postsAPI.uploadImage(formData)
+      const imageUrl = uploadRes.data.url
+
+      await circlesAPI.updateImage(id, imageUrl)
+      setCircle((prev) => prev ? { ...prev, image_url: imageUrl } : null)
+      toast.success('Group avatar updated!', { id: toastId })
+    } catch (err) {
+      toast.error('Failed to upload image', { id: toastId })
+    } finally {
+      setIsUploadingImage(false)
+    }
+  }
+
+  async function handleRemoveImage() {
+    if (!window.confirm('Remove group avatar?')) return
+    const toastId = toast.loading('Removing avatar...')
+    try {
+      await circlesAPI.updateImage(id, null)
+      setCircle((prev) => prev ? { ...prev, image_url: null } : null)
+      toast.success('Group avatar removed!', { id: toastId })
+    } catch (err) {
+      toast.error('Failed to remove avatar', { id: toastId })
+    }
+  }
+
+  async function handlePromoteAdmin(memberId) {
+    try {
+      await circlesAPI.promoteAdmin(id, memberId)
+      toast.success('Member promoted to Admin! 🛡️')
+      loadCircleDetails()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to promote member')
+    }
+  }
+
+  async function handleDemoteAdmin(memberId) {
+    try {
+      await circlesAPI.demoteAdmin(id, memberId)
+      toast.success('Admin privileges removed.')
+      loadCircleDetails()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to demote Admin')
+    }
+  }
+
+  async function handleTransferOwnership(memberId, memberName) {
+    if (!window.confirm(`Are you sure you want to transfer ownership to ${memberName}? This action cannot be undone and you will become an Admin.`)) return
+    try {
+      await circlesAPI.transferOwnership(id, memberId)
+      toast.success(`Ownership successfully transferred to ${memberName}! 👑`)
+      setCircle((prev) => prev ? { ...prev, my_role: 'admin' } : null)
+      loadCircleDetails()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to transfer ownership')
+    }
+  }
+
+  async function handleDeleteCircle() {
+    if (!window.confirm('CRITICAL WARNING: Are you sure you want to delete this circle? All messages, events, polls, pins, and files will be permanently lost! This action cannot be undone.')) return
+    try {
+      await circlesAPI.deleteCircle(id)
+      toast.success('Group deleted successfully.')
+      navigate('/circles')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to delete group')
+    }
+  }
+
+  async function handleKickMember(memberId, memberName) {
+    if (!window.confirm(`Are you sure you want to remove ${memberName} from this group?`)) return
+    try {
+      await circlesAPI.removeMember(id, memberId)
+      toast.success(`${memberName} has been removed.`)
+      loadCircleDetails()
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to remove member')
+    }
+  }
+
+  async function handleLeaveCircle() {
+    if (!window.confirm('Are you sure you want to leave this circle?')) return
+    try {
+      await circlesAPI.removeMember(id, user.id)
+      toast.success('You left the circle.')
+      navigate('/circles')
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Failed to leave circle')
+    }
+  }
+
+  async function handleDeleteMessageAdmin(messageId) {
+    if (!window.confirm('Moderate message: Are you sure you want to remove this message for everyone?')) return
+    try {
+      await circlesAPI.deleteMessageAdmin(id, messageId)
+      setMessages((prev) =>
+        prev.map((msg) => (msg.id === messageId ? { ...msg, message: 'This message was removed by an administrator.' } : msg))
+      )
+      toast.success('Message removed by admin.')
+    } catch (err) {
+      toast.error('Failed to moderate message')
+    }
+  }
+
   if (isLoading) {
     return (
       <div className="min-h-[70vh] flex flex-col items-center justify-center gap-3">
@@ -457,6 +666,15 @@ export default function CircleChatPage() {
               </p>
             </div>
           </div>
+
+          <button
+            onClick={() => setIsInfoOpen(true)}
+            className="p-2 hover:bg-stone-50 rounded-xl transition-colors text-stone-500 hover:text-stone-850 flex items-center gap-1.5 text-xs font-bold"
+            title="Circle Info & Settings"
+          >
+            <Info size={16} />
+            Info
+          </button>
         </div>
 
         {/* Not Member Gate */}
@@ -518,18 +736,24 @@ export default function CircleChatPage() {
 
                         {/* Bubble */}
                         <div className="flex items-end gap-1.5 relative">
-                          {/* Trash button for admins to delete other users' messages or creators to delete their own */}
-                          {(isOwn || circle.my_role === 'admin') && (
+                          {/* Trash button for owner/admins to moderate, or author to delete own */}
+                          {isOwn ? (
                             <button
                               onClick={() => handleDeleteMessage(msg.id)}
-                              className={`opacity-0 group-hover:opacity-100 p-1 text-stone-450 hover:text-red-500 transition-opacity absolute top-1 ${
-                                isOwn ? '-left-6' : '-right-6'
-                              }`}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-stone-450 hover:text-red-500 transition-opacity absolute top-1 -left-6"
                               title="Delete message"
                             >
                               <Trash2 size={12} />
                             </button>
-                          )}
+                          ) : (circle.my_role === 'owner' || circle.my_role === 'admin') ? (
+                            <button
+                              onClick={() => handleDeleteMessageAdmin(msg.id)}
+                              className="opacity-0 group-hover:opacity-100 p-1 text-stone-450 hover:text-red-500 transition-opacity absolute top-1 -right-6"
+                              title="Remove message (Admin)"
+                            >
+                              <Trash2 size={12} />
+                            </button>
+                          ) : null}
                           <div
                             className={`p-3 rounded-2xl text-xs leading-relaxed shadow-sm font-medium ${
                               isOwn
@@ -537,7 +761,13 @@ export default function CircleChatPage() {
                                 : 'bg-stone-50 border border-stone-150 text-stone-750 rounded-bl-none'
                             }`}
                           >
-                            <p className="break-words white-space-pre-wrap">{msg.message}</p>
+                            {msg.message === 'This message was removed by an administrator.' ? (
+                              <p className="break-words white-space-pre-wrap italic text-stone-400 select-none">
+                                {msg.message}
+                              </p>
+                            ) : (
+                              <p className="break-words white-space-pre-wrap">{msg.message}</p>
+                            )}
                             <div
                               className={`text-[8px] font-bold mt-1 text-right select-none ${
                                 isOwn ? 'text-primary-100' : 'text-stone-400'
@@ -906,6 +1136,326 @@ export default function CircleChatPage() {
             </div>
           </div>
         </aside>
+      )}
+
+      {/* Group Info Sliding Drawer Overlay */}
+      {isInfoOpen && (
+        <div className="fixed inset-0 z-50 overflow-hidden flex justify-end animate-fadeIn duration-150">
+          {/* Backdrop */}
+          <div 
+            className="absolute inset-0 bg-stone-900/40 backdrop-blur-sm cursor-pointer"
+            onClick={() => {
+              setIsInfoOpen(false)
+              setIsEditingName(false)
+              setIsEditingDesc(false)
+            }}
+          />
+
+          {/* Drawer content */}
+          <div className="relative w-full max-w-md bg-stone-50 h-full shadow-2xl flex flex-col justify-between text-left animate-slideInRight duration-200 border-l border-stone-200">
+            
+            {/* Header */}
+            <div className="px-6 py-5 bg-white border-b border-stone-150 flex items-center justify-between">
+              <h2 className="text-sm font-bold text-stone-850 flex items-center gap-1.5">
+                <Info size={16} className="text-stone-500" />
+                Group Info & Settings
+              </h2>
+              <button 
+                onClick={() => {
+                  setIsInfoOpen(false)
+                  setIsEditingName(false)
+                  setIsEditingDesc(false)
+                }}
+                className="p-1.5 hover:bg-stone-50 rounded-full transition-colors text-stone-500 hover:text-stone-800"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+              
+              {/* Avatar Section */}
+              <div className="flex flex-col items-center gap-3">
+                <div className="relative group">
+                  {circle.image_url ? (
+                    <img 
+                      src={circle.image_url} 
+                      alt={circle.name} 
+                      className="w-24 h-24 rounded-3xl object-cover border-2 border-white shadow-md"
+                    />
+                  ) : (
+                    <div className={`w-24 h-24 rounded-3xl flex items-center justify-center font-bold text-3xl shadow-md ${colorClass}`}>
+                      {initials}
+                    </div>
+                  )}
+                  
+                  {/* Camera overlays for Owner only */}
+                  {circle.my_role === 'owner' && (
+                    <div className="absolute inset-0 bg-black/40 rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                      <label className="cursor-pointer p-2 bg-white/20 hover:bg-white/35 rounded-full text-white transition-colors">
+                        <Camera size={16} />
+                        <input 
+                          type="file" 
+                          accept="image/*" 
+                          onChange={handleImageUpload} 
+                          disabled={isUploadingImage}
+                          className="hidden" 
+                        />
+                      </label>
+                      {circle.image_url && (
+                        <button 
+                          onClick={handleRemoveImage}
+                          className="p-2 bg-red-500/20 hover:bg-red-500/35 rounded-full text-red-150 transition-colors"
+                          title="Remove avatar"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                {circle.my_role === 'owner' && isUploadingImage && (
+                  <p className="text-[10px] text-stone-400 animate-pulse">Uploading new avatar...</p>
+                )}
+              </div>
+
+              {/* Group Name & Description Section */}
+              <div className="space-y-4 bg-white border border-stone-200/90 rounded-3xl p-5 shadow-[0_1px_2px_rgba(0,0,0,0.01)]">
+                
+                {/* Name */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">Group Name</span>
+                  {isEditingName ? (
+                    <div className="flex gap-2">
+                      <input 
+                        type="text" 
+                        value={editedName}
+                        onChange={(e) => setEditedName(e.target.value)}
+                        className="flex-1 h-9 px-3 border border-stone-200 rounded-xl text-xs font-semibold"
+                        autoFocus
+                      />
+                      <button 
+                        onClick={handleUpdateName}
+                        className="px-3 bg-stone-850 hover:bg-black text-white text-xs font-bold rounded-xl"
+                      >
+                        Save
+                      </button>
+                      <button 
+                        onClick={() => {
+                          setEditedName(circle.name)
+                          setIsEditingName(false)
+                        }}
+                        className="px-3 bg-stone-100 hover:bg-stone-200 text-stone-500 text-xs font-bold rounded-xl"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-bold text-stone-850">{circle.name}</p>
+                      {circle.my_role === 'owner' && (
+                        <button 
+                          onClick={() => setIsEditingName(true)}
+                          className="p-1 text-stone-400 hover:text-stone-800 rounded-lg hover:bg-stone-50 transition-colors"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                <hr className="border-stone-100" />
+
+                {/* Description */}
+                <div className="space-y-1.5">
+                  <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block">Description</span>
+                  {isEditingDesc ? (
+                    <div className="space-y-2">
+                      <textarea 
+                        value={editedDesc}
+                        onChange={(e) => setEditedDesc(e.target.value)}
+                        rows={3}
+                        className="w-full p-3 border border-stone-200 rounded-xl text-xs font-medium resize-none"
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button 
+                          onClick={handleUpdateDesc}
+                          className="px-3 py-1.5 bg-stone-850 hover:bg-black text-white text-xs font-bold rounded-xl"
+                        >
+                          Save
+                        </button>
+                        <button 
+                          onClick={() => {
+                            setEditedDesc(circle.description || '')
+                            setIsEditingDesc(false)
+                          }}
+                          className="px-3 py-1.5 bg-stone-100 hover:bg-stone-200 text-stone-500 text-xs font-bold rounded-xl"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-start justify-between gap-4">
+                      <p className="text-xs text-stone-600 font-medium leading-relaxed">
+                        {circle.description || <span className="text-stone-400 italic">No description provided.</span>}
+                      </p>
+                      {circle.my_role === 'owner' && (
+                        <button 
+                          onClick={() => setIsEditingDesc(true)}
+                          className="p-1 text-stone-400 hover:text-stone-800 rounded-lg hover:bg-stone-50 transition-colors flex-shrink-0"
+                        >
+                          <Edit2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Members List Section */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-bold text-stone-400 uppercase tracking-widest block px-1">
+                  Group Members ({members.length})
+                </span>
+                
+                <div className="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                  {members.map((mbr) => {
+                    const mbrInitials = mbr.name.substring(0, 1).toUpperCase()
+                    const mbrColor = getAvatarColor(mbr.name)
+                    const isMbrMe = mbr.id === user.id
+
+                    return (
+                      <div key={mbr.id} className="p-3 bg-white border border-stone-200/90 rounded-3xl flex items-center justify-between gap-3 text-left">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          {mbr.avatar_url ? (
+                            <img 
+                              src={mbr.avatar_url} 
+                              alt={mbr.name} 
+                              className="w-8 h-8 rounded-xl object-cover border border-stone-100 flex-shrink-0"
+                            />
+                          ) : (
+                            <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold text-xs flex-shrink-0 ${mbrColor}`}>
+                              {mbrInitials}
+                            </div>
+                          )}
+                          <div className="min-w-0">
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-xs font-bold text-stone-850 truncate">
+                                {mbr.name} {isMbrMe && <span className="text-[10px] text-stone-400 font-normal italic">(you)</span>}
+                              </p>
+                              {mbr.role === 'owner' && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-amber-50 text-amber-600 border border-amber-200">
+                                  <Crown size={8} /> Owner
+                                </span>
+                              )}
+                              {mbr.role === 'admin' && (
+                                <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-blue-50 text-blue-600 border border-blue-200">
+                                  <Shield size={8} /> Admin
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-[9px] text-stone-400 truncate">{mbr.email}</p>
+                          </div>
+                        </div>
+
+                        {/* Role-based actions */}
+                        {!isMbrMe && (
+                          <div className="flex gap-1 flex-shrink-0">
+                            
+                            {/* Owner actions */}
+                            {circle.my_role === 'owner' && (
+                              <>
+                                {/* Promote/Demote */}
+                                {mbr.role === 'member' ? (
+                                  <button 
+                                    onClick={() => handlePromoteAdmin(mbr.id)}
+                                    className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-600 border border-blue-200 rounded-lg text-[9px] font-bold"
+                                    title="Make Admin"
+                                  >
+                                    Promote
+                                  </button>
+                                ) : mbr.role === 'admin' ? (
+                                  <button 
+                                    onClick={() => handleDemoteAdmin(mbr.id)}
+                                    className="px-2 py-1 bg-stone-100 hover:bg-stone-250 text-stone-600 border border-stone-200 rounded-lg text-[9px] font-bold"
+                                    title="Remove Admin privileges"
+                                  >
+                                    Demote
+                                  </button>
+                                ) : null}
+
+                                {/* Transfer Ownership */}
+                                {mbr.role !== 'owner' && (
+                                  <button 
+                                    onClick={() => handleTransferOwnership(mbr.id, mbr.name)}
+                                    className="px-2 py-1 bg-amber-50 hover:bg-amber-100 text-amber-600 border border-amber-200 rounded-lg text-[9px] font-bold"
+                                    title="Transfer Group Ownership"
+                                  >
+                                    Transfer
+                                  </button>
+                                )}
+
+                                {/* Kick */}
+                                {mbr.role !== 'owner' && (
+                                  <button 
+                                    onClick={() => handleKickMember(mbr.id, mbr.name)}
+                                    className="p-1 hover:bg-red-50 text-stone-400 hover:text-red-600 border border-transparent hover:border-red-100 rounded-lg transition-colors"
+                                    title="Remove from group"
+                                  >
+                                    <X size={14} />
+                                  </button>
+                                )}
+                              </>
+                            )}
+
+                            {/* Admin actions (can kick normal members) */}
+                            {circle.my_role === 'admin' && mbr.role === 'member' && (
+                              <button 
+                                onClick={() => handleKickMember(mbr.id, mbr.name)}
+                                className="p-1 hover:bg-red-50 text-stone-400 hover:text-red-600 border border-transparent hover:border-red-100 rounded-lg transition-colors"
+                                title="Remove from group"
+                              >
+                                <X size={14} />
+                              </button>
+                            )}
+
+                          </div>
+                        )}
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+
+            </div>
+
+            {/* Bottom Actions Area */}
+            <div className="p-6 bg-white border-t border-stone-150 flex gap-3">
+              {circle.my_role === 'owner' ? (
+                <button 
+                  onClick={handleDeleteCircle}
+                  className="flex-1 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Trash2 size={14} />
+                  Delete Group
+                </button>
+              ) : (
+                <button 
+                  onClick={handleLeaveCircle}
+                  className="flex-1 py-2.5 bg-white border border-stone-200 hover:bg-stone-50 text-red-600 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <LogOut size={14} />
+                  Leave Group
+                </button>
+              )}
+            </div>
+
+          </div>
+        </div>
       )}
     </div>
   )

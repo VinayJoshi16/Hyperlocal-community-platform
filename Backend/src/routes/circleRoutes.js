@@ -1,6 +1,5 @@
-const express = require('express');
-const router = express.Router();
 const { authMiddleware } = require('../middleware/authMiddleware');
+const { requireOwner, requireAdminOrOwner } = require('../middleware/circleAuthMiddleware');
 const {
   getCircles,
   createCircle,
@@ -25,8 +24,20 @@ const {
   handleJoinRequest,
   deleteCircleMessage,
   deleteCirclePoll,
-  deleteCircleEvent
+  deleteCircleEvent,
+  updateCircleName,
+  updateCircleImage,
+  updateCircleDescription,
+  promoteCircleAdmin,
+  demoteCircleAdmin,
+  transferCircleOwnership,
+  deleteCircle,
+  removeCircleMember,
+  deleteCircleMessageAdmin
 } = require('../controllers/circleController');
+
+const express = require('express');
+const router = express.Router();
 
 // All routes require token authentication
 router.use(authMiddleware);
@@ -37,6 +48,16 @@ router.post('/', createCircle);
 router.get('/:id', getCircleDetails);
 router.post('/:id/join', joinCircle);
 router.patch('/:id/settings', updateCircleSettings);
+
+// Group Owner & Admin settings management
+router.patch('/:id/name', requireOwner, updateCircleName);
+router.patch('/:id/image', requireOwner, updateCircleImage);
+router.patch('/:id/description', requireOwner, updateCircleDescription);
+router.post('/:id/admins', requireOwner, promoteCircleAdmin);
+router.delete('/:id/admins/:userId', requireOwner, demoteCircleAdmin);
+router.post('/:id/transfer-owner', requireOwner, transferCircleOwnership);
+router.delete('/:id', requireOwner, deleteCircle);
+router.delete('/:id/members/:userId', requireAdminOrOwner, removeCircleMember);
 
 // Direct member management & searching other neighbors
 router.get('/users/search', searchNeighborhoodUsers);
@@ -51,6 +72,7 @@ router.get('/:id/messages', getCircleMessages);
 router.post('/:id/messages', postCircleMessage);
 router.post('/:id/messages/view', markMessagesViewed);
 router.delete('/:id/messages/:messageId', deleteCircleMessage);
+router.delete('/:id/messages/:messageId/admin', requireAdminOrOwner, deleteCircleMessageAdmin);
 
 // Notice board (Pins)
 router.get('/:id/pins', getCirclePins);
