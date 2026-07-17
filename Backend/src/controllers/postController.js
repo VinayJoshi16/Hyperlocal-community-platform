@@ -4,6 +4,7 @@
 const postModel = require('../models/postModel');
 const locationModel = require('../models/locationModel');
 const aiService = require('../services/aiService');
+const { sendPushNotificationToNearbyUsers } = require('../services/webPushService');
 const { query } = require('../config/db');
 const { asyncHandler, ok, fail } = require('../utils/helpers');
 const { z } = require('zod');
@@ -172,6 +173,11 @@ const createPost = asyncHandler(async (req, res) => {
       isHeld: true
     }, 201);
   }
+
+  // Trigger push notifications in background for nearby residents
+  sendPushNotificationToNearbyUsers(fullPost, fullPost.author_name).catch(err => {
+    console.error('[WebPush] Error sending push notifications:', err.message);
+  });
 
   return ok(res, { post: fullPost }, 201);
 });

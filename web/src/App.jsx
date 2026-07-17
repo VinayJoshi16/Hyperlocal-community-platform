@@ -4,12 +4,13 @@
 // 3. Socket connection lifecycle (connect after login, disconnect on logout)
 
 import { useEffect } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 
 import { fetchMe, selectIsAuthenticated, selectAuthLoading } from './redux/slices/authSlice'
 import { fetchMyLocations } from './redux/slices/locationSlice'
 import { connectSocket, disconnectSocket } from './services/socket'
+import { notificationService } from './services/notificationService'
 
 import LandingPage    from './pages/LandingPage'
 import LoginPage      from './pages/LoginPage'
@@ -41,6 +42,7 @@ function PublicRoute({ children }) {
 
 export default function App() {
   const dispatch        = useDispatch()
+  const navigate        = useNavigate()
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   // On first load: check stored token and fetch user profile
@@ -58,10 +60,25 @@ export default function App() {
     if (isAuthenticated) {
       dispatch(fetchMyLocations())
       connectSocket()
+      // Request permission & subscribe to push notifications
+      notificationService.init()
     } else {
       disconnectSocket()
     }
   }, [isAuthenticated, dispatch])
+
+  // Listen to deep-link NAVIGATE messages from service worker click events
+  useEffect(() => {
+    if ('serviceWorker' in navigator) {
+      const handleMessage = (event) => {
+        if (event.data && event.data.type === 'NAVIGATE') {
+          navigate(event.data.url)
+        }
+      };
+      navigator.serviceWorker.addEventListener('message', handleMessage);
+      return () => navigator.serviceWorker.removeEventListener('message', handleMessage);
+    }
+  }, [navigate])
 
   return (
     <Routes>

@@ -56,6 +56,11 @@ const config = {
   gemini: {
     apiKey: process.env.GEMINI_API_KEY || null,
   },
+  vapid: {
+    publicKey: required('VAPID_PUBLIC_KEY'),
+    privateKey: required('VAPID_PRIVATE_KEY'),
+    subject: required('VAPID_SUBJECT', 'mailto:vinay.joshi1608@gmail.com'),
+  },
 };
 
 module.exports = config;

@@ -185,4 +185,10 @@ export const circlesAPI = {
   handleJoinRequest:  (id, targetUserId, action) => api.post(`/circles/${id}/requests/${targetUserId}`, { action }),
 }
 
+export const notificationsAPI = {
+  getVapidPublicKey: () => api.get('/notifications/vapid-public-key'),
+  subscribe: (data) => api.post('/notifications/subscribe', data),
+  unsubscribe: (endpoint) => api.post('/notifications/unsubscribe', { endpoint }),
+}
+
 export default api

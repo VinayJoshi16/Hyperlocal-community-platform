@@ -15,6 +15,7 @@ const authRoutes = require('./src/routes/authRoutes');
 const locationRoutes = require('./src/routes/locationRoutes');
 const postRoutes = require('./src/routes/postRoutes');
 const circleRoutes = require('./src/routes/circleRoutes');
+const notificationRoutes = require('./src/routes/notificationRoutes');
 const { errorMiddleware, notFoundMiddleware } = require('./src/middleware/errorMiddleware');
 
 const app = express();
@@ -31,7 +32,7 @@ app.use(
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Active-Location-Id'],
   })
 );
 
@@ -74,6 +75,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/location', locationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/circles', circleRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ─── 404 handler (after all routes) ──────────────────────────────────────────
 app.use(notFoundMiddleware);
