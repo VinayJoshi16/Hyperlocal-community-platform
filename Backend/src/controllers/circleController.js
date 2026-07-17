@@ -22,14 +22,14 @@ async function getCircles(req, res) {
   }
 
   try {
-    // 1. Get all circles at this location
+    // 1. Get all circles at this location OR circles where the user is a member
     const circlesRes = await query(
       `SELECT c.*, 
               (SELECT COUNT(*)::int FROM circle_members WHERE circle_id = c.id) as member_count,
               m.role as my_role
        FROM circles c
        LEFT JOIN circle_members m ON m.circle_id = c.id AND m.user_id = $1
-       WHERE c.location_id = $2
+       WHERE c.location_id = $2 OR m.role IS NOT NULL
        ORDER BY c.last_message_at DESC, c.created_at DESC`,
       [userId, locationId]
     );
