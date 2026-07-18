@@ -48,8 +48,46 @@ function processQueue(error, token = null) {
   failedQueue = []
 }
 
+const baseHost = import.meta.env.DEV 
+  ? 'http://localhost:5000' 
+  : (import.meta.env.VITE_API_URL 
+      ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
+      : 'https://neighbourhub-backend.onrender.com');
+
+const cleanHost = baseHost.replace(/\/$/, '');
+
+function resolveUploadUrls(data) {
+  if (!data) return data;
+  
+  if (typeof data === 'string') {
+    if (data.startsWith('/uploads/')) {
+      return `${cleanHost}${data}`;
+    }
+    return data;
+  }
+  
+  if (Array.isArray(data)) {
+    return data.map(resolveUploadUrls);
+  }
+  
+  if (typeof data === 'object') {
+    const copy = {};
+    for (const key in data) {
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        copy[key] = resolveUploadUrls(data[key]);
+      }
+    }
+    return copy;
+  }
+  
+  return data;
+}
+
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    response.data = resolveUploadUrls(response.data);
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config
 

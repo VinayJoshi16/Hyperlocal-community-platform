@@ -23,13 +23,27 @@ const app = express();
 // ─── Security headers ─────────────────────────────────────────────────────────
 app.use(helmet());
 
-// ─── CORS ─────────────────────────────────────────────────────────────────────
 app.use(
   cors({
-    origin: [
-      config.clientUrl,
-      'http://localhost:3000',
-    ],
+    origin: (origin, callback) => {
+      if (!origin) return callback(null, true);
+      
+      const allowedOrigins = [
+        config.clientUrl,
+        'http://localhost:3000',
+        'http://localhost:5173',
+      ];
+      
+      const normalizedAllowed = allowedOrigins.map(url => url ? url.replace(/\/$/, '') : '');
+      const normalizedOrigin = origin.replace(/\/$/, '');
+      
+      if (normalizedAllowed.includes(normalizedOrigin)) {
+        callback(null, true);
+      } else {
+        console.warn(`[CORS Blocked] Origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Active-Location-Id'],
