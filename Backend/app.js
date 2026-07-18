@@ -20,8 +20,11 @@ const { errorMiddleware, notFoundMiddleware } = require('./src/middleware/errorM
 
 const app = express();
 
-// ─── Security headers ─────────────────────────────────────────────────────────
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  })
+);
 
 app.use(
   cors({

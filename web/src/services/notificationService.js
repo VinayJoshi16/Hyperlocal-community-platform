@@ -42,7 +42,7 @@ export const notificationService = {
 
       // 3. Fetch VAPID public key from backend
       const resKey = await notificationsAPI.getVapidPublicKey();
-      const vapidPublicKey = resKey.data.publicKey;
+      const vapidPublicKey = resKey.data.data?.publicKey;
 
       // 4. Subscribe user to push service
       const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
