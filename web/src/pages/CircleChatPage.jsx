@@ -632,13 +632,13 @@ export default function CircleChatPage() {
   const colorClass = getAvatarColor(circle.name)
 
   return (
-    <div className="w-full flex flex-col xl:flex-row gap-6 items-stretch animate-fadeIn min-h-[calc(100vh-10rem)]">
+    <div className="h-full lg:min-h-0 w-full flex flex-col xl:flex-row gap-6 items-stretch animate-fadeIn lg:overflow-hidden">
       
       {/* Left/Center Column: Chat Window */}
-      <div className="flex-1 min-w-0 bg-white border border-stone-200/90 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col justify-between">
+      <div className="flex-1 min-w-0 min-h-0 bg-white border border-stone-200/90 rounded-3xl shadow-[0_1px_3px_rgba(0,0,0,0.02)] flex flex-col overflow-hidden xl:h-full">
         
         {/* Chat header */}
-        <div className="px-6 py-4 border-b border-stone-150 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-stone-150 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center gap-3.5 min-w-0 text-left">
             <button
               onClick={() => navigate('/circles')}
@@ -701,7 +701,7 @@ export default function CircleChatPage() {
         ) : (
           <>
             {/* Messages Feed */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[50vh] xl:max-h-[58vh]">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 space-y-4">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 text-stone-400 space-y-2">
                   <span className="text-xl">💬</span>
@@ -798,7 +798,7 @@ export default function CircleChatPage() {
             </div>
 
             {/* Input Composer */}
-            <form onSubmit={handleSendMessage} className="p-4 border-t border-stone-150 flex items-center gap-3">
+            <form onSubmit={handleSendMessage} className="p-4 border-t border-stone-150 flex items-center gap-3 flex-shrink-0">
               <input
                 type="text"
                 placeholder="Type a message to the group..."
@@ -821,7 +821,7 @@ export default function CircleChatPage() {
 
       {/* Right Column: Interactive Sidebar Widgets (Collaboration Lounge) */}
       {isMember && (
-        <aside className="w-full xl:w-[340px] flex-shrink-0 flex flex-col gap-6">
+        <aside className="w-full xl:w-[340px] flex-shrink-0 flex flex-col gap-6 xl:h-full xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain pr-1 pb-4">
           
           {/* Upcoming Shared Events Widget */}
           <div className="bg-white border border-stone-200/90 rounded-3xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left space-y-4">
@@ -831,7 +831,7 @@ export default function CircleChatPage() {
             </h3>
 
             {/* Events List */}
-            <div className="space-y-3.5 max-h-[220px] overflow-y-auto pr-1">
+            <div className="space-y-3.5 pr-1">
               {events.length === 0 ? (
                 <p className="text-[11px] text-stone-400 italic">No community events planned.</p>
               ) : (
@@ -927,7 +927,7 @@ export default function CircleChatPage() {
               📌 Notice Pinboard
             </h3>
             
-            <div className="space-y-3 max-h-[180px] overflow-y-auto pr-1">
+            <div className="space-y-3 pr-1">
               {pins.length === 0 ? (
                 <p className="text-[11px] text-stone-400 italic">No pinned notices for this circle.</p>
               ) : (
@@ -971,7 +971,7 @@ export default function CircleChatPage() {
               📊 Live Quick-Polls
             </h3>
 
-            <div className="space-y-4 max-h-[220px] overflow-y-auto pr-1">
+            <div className="space-y-4 pr-1">
               {polls.length === 0 ? (
                 <p className="text-[11px] text-stone-400 italic">No active polls in this group.</p>
               ) : (

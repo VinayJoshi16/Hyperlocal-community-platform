@@ -22,7 +22,7 @@ export default function AppShell() {
   }, [location.pathname, dispatch])
 
   return (
-    <div className="min-h-screen bg-transparent flex flex-col">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-transparent flex flex-col">
 
       {/* Emergency alert banner sits above everything */}
       {emergency && (
@@ -35,13 +35,11 @@ export default function AppShell() {
       <Navbar />
       <AppTour />
 
-      <div className="flex flex-1 w-full px-4 sm:px-6 lg:px-8 xl:px-10 gap-6 sm:gap-8 pt-6 pb-12">
+      <div className="flex flex-1 min-h-0 w-full px-4 sm:px-6 lg:px-8 xl:px-10 gap-6 sm:gap-8 pt-6 pb-6 lg:pb-4 lg:overflow-hidden">
 
         {/* Left sidebar - desktop only */}
-        <aside className="hidden lg:block lg:w-[260px] xl:w-[280px] flex-shrink-0">
-          <div className="sticky top-20">
-            <Sidebar />
-          </div>
+        <aside className="hidden lg:flex lg:w-[260px] xl:w-[280px] flex-shrink-0 min-h-0 overflow-y-auto overscroll-contain">
+          <Sidebar />
         </aside>
 
         {/* Mobile sidebar overlay */}
@@ -59,7 +57,7 @@ export default function AppShell() {
         )}
 
         {/* Pages render here */}
-        <main className="flex-1 min-w-0">
+        <main className="flex-1 min-w-0 min-h-0 lg:overflow-hidden overflow-y-auto overscroll-contain flex flex-col">
           <Outlet />
         </main>
 

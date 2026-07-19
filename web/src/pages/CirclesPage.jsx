@@ -107,7 +107,7 @@ export default function CirclesPage() {
   }
 
   return (
-    <div className="w-full space-y-6 animate-fadeIn pb-12">
+    <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain w-full space-y-6 animate-fadeIn pb-12">
       {/* Header section */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white border border-stone-200/90 rounded-2xl p-6 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
         <div className="space-y-1.5 text-left">

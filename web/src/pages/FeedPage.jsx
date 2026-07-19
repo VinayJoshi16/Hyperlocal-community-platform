@@ -76,10 +76,10 @@ export default function FeedPage() {
   const otherPosts = filteredPosts.filter((p) => !p.is_pinned)
 
   return (
-    <div className="flex w-full gap-8 items-start">
+    <div className="h-full lg:min-h-0 flex w-full gap-8 items-stretch lg:overflow-hidden">
       
       {/* Main Feed Column */}
-      <div className="flex-1 min-w-0 max-w-feed mx-auto w-full">
+      <div className="flex-1 min-w-0 max-w-feed mx-auto w-full lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain pr-1">
         {/* Emergency alert banner */}
         {emergencyAlert && (
           <div className="emergency-banner rounded-2xl mb-6 shadow-md flex items-center justify-between">
@@ -170,7 +170,7 @@ export default function FeedPage() {
       </div>
 
       {/* Right Sidebar - desktop only */}
-      <aside className="hidden xl:flex flex-col gap-6 w-[340px] flex-shrink-0 sticky top-[80px]">
+      <aside className="hidden xl:flex flex-col gap-6 w-[340px] flex-shrink-0 lg:h-full lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain pr-1">
         {/* Emergency Contacts card */}
         <div id="tour-hotlines" className="bg-white border border-stone-200/90 rounded-2xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left">
           <h3 className="text-xs font-bold text-stone-400 uppercase tracking-widest mb-4">

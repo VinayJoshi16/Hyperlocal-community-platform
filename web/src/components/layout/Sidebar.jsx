@@ -34,7 +34,7 @@ export default function Sidebar() {
   }
 
   return (
-    <nav className="flex flex-col gap-5 max-h-[calc(100vh-6.5rem)] select-none">
+    <nav className="flex flex-col gap-5 min-h-full select-none pb-4">
 
       {/* Create post button - Pinned at top */}
       <div className="flex-shrink-0">
@@ -48,7 +48,7 @@ export default function Sidebar() {
       </div>
 
       {/* Scrollable list items */}
-      <div className="flex-1 overflow-y-auto pr-1.5 space-y-5 scrollbar-hide">
+      <div className="space-y-5">
         {/* Feed type filters */}
         <div>
           <p className="text-[10px] font-bold text-stone-400 uppercase tracking-widest mb-3 px-2">

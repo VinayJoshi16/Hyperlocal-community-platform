@@ -263,7 +263,7 @@ export default function PostDetailPage() {
   const getReplies = (parentId) => comments.filter(c => c.parent_id === parentId)
 
   return (
-    <div className="max-w-feed mx-auto w-full px-4 py-6 space-y-6">
+    <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain max-w-feed mx-auto w-full px-4 py-6 space-y-6">
       
       {/* Back button */}
       <button 
