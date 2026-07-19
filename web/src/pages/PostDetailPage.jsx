@@ -20,6 +20,7 @@ import toast from 'react-hot-toast'
 import { selectUser } from '../redux/slices/authSlice'
 import { postsAPI } from '../services/api'
 import { renderBodyWithLinks } from '../utils/linkify'
+import { getMediaFit, getMediaSrc } from '../utils/mediaUrl'
 
 const TYPE_CONFIG = {
   announcement: { label: 'Update',       className: 'badge-stone' },
@@ -352,15 +353,16 @@ export default function PostDetailPage() {
           </p>
           {post.media_urls && post.media_urls.length > 0 && (() => {
             const imgUrl = post.media_urls[0]
-            const isContain = imgUrl.endsWith('#contain')
-            const isSquare = imgUrl.endsWith('#square')
+            const fit = getMediaFit(imgUrl)
+            const isContain = fit === 'contain'
+            const isSquare = fit === 'square'
             
             return (
               <div className={`mt-4 overflow-hidden rounded-xl border border-stone-200 bg-stone-50/30 flex justify-center items-center ${
                 isSquare ? 'max-w-sm mx-auto aspect-square' : 'max-h-96 w-full'
               }`}>
                 <img 
-                  src={imgUrl} 
+                  src={getMediaSrc(imgUrl)} 
                   alt="Post Attachment" 
                   className={`w-full ${
                     isContain 

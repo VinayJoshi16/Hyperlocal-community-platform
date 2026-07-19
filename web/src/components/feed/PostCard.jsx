@@ -15,6 +15,7 @@ import toast from 'react-hot-toast'
 import { reactToPost } from '../../redux/slices/feedSlice'
 import { postsAPI } from '../../services/api'
 import { renderBodyWithLinks } from '../../utils/linkify'
+import { getMediaFit, getMediaSrc } from '../../utils/mediaUrl'
 
 const TYPE_CONFIG = {
   announcement: { label: 'Update',       className: 'badge-stone' },
@@ -250,19 +251,20 @@ export default function PostCard({ post }) {
         </p>
         {postState.media_urls && postState.media_urls.length > 0 && (() => {
           const imgUrl = postState.media_urls[0]
-          const isContain = imgUrl.endsWith('#contain')
-          const isSquare = imgUrl.endsWith('#square')
+          const fit = getMediaFit(imgUrl)
+          const isContain = fit === 'contain'
+          const isSquare = fit === 'square'
           
           return (
             <div className={`mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-stone-50/20 flex justify-center items-center ${
               isSquare ? 'max-w-sm mx-auto aspect-square' : 'max-h-96 w-full'
             }`}>
               <img 
-                src={imgUrl} 
+                src={getMediaSrc(imgUrl)} 
                 alt="Post Attachment" 
                 onClick={(e) => {
                   e.stopPropagation()
-                  setLightboxMedia({ type: 'image', url: imgUrl })
+                  setLightboxMedia({ type: 'image', url: getMediaSrc(imgUrl) })
                 }}
                 className={`w-full cursor-zoom-in ${
                   isContain 
@@ -280,7 +282,7 @@ export default function PostCard({ post }) {
         {postState.video_urls && postState.video_urls.length > 0 && (
           <div className="mt-4 overflow-hidden rounded-2xl border border-stone-200 bg-stone-950 flex justify-center items-center max-h-[400px] w-full shadow-sm relative group">
             <video 
-              src={postState.video_urls[0]} 
+              src={getMediaSrc(postState.video_urls[0])} 
               controls 
               className="w-full max-h-[400px] object-contain"
             />
@@ -288,7 +290,7 @@ export default function PostCard({ post }) {
               type="button"
               onClick={(e) => {
                 e.stopPropagation()
-                setLightboxMedia({ type: 'video', url: postState.video_urls[0] })
+                setLightboxMedia({ type: 'video', url: getMediaSrc(postState.video_urls[0]) })
               }}
               className="absolute top-3 right-3 bg-black/60 hover:bg-black/85 text-white p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider shadow-md"
             >

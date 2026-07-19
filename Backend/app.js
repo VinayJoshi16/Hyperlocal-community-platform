@@ -77,7 +77,20 @@ const globalLimiter = rateLimit({
 app.use('/api', globalLimiter);
 
 // ─── Static file serving (local uploads while STORAGE_PROVIDER=local) ─────────
-app.use('/uploads', express.static(path.join(__dirname, config.storage.localUploadDir)));
+// Explicit cross-origin headers so Vercel-hosted frontend can embed Render-hosted images.
+app.use('/uploads', (req, res, next) => {
+  res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') {
+    return res.sendStatus(204);
+  }
+  next();
+}, express.static(path.join(__dirname, config.storage.localUploadDir), {
+  setHeaders: (res) => {
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  },
+}));
 
 // ─── Health check ─────────────────────────────────────────────────────────────
 app.get('/health', (req, res) => {
