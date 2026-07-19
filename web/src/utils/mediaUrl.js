@@ -1,7 +1,10 @@
-// Upload paths stay relative (/uploads/...) so Vite (dev) and Vercel (prod) can proxy them.
+// Resolves media URLs for display. New uploads use Vercel Blob (absolute https URLs).
+// Legacy posts may still use /uploads/... (proxied in dev via Vite).
 
 export function resolveMediaUrl(url) {
   if (!url || typeof url !== 'string') return url
+
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
 
   if (url.startsWith('/uploads/')) return url
 

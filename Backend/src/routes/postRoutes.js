@@ -31,21 +31,30 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 const { requireAdminOrModerator } = require('../middleware/rbacMiddleware');
 
 const upload = require('../middleware/uploadMiddleware');
+const { saveUploadedFile } = require('../services/storageService');
 
 // All post routes require a valid JWT
 router.use(authMiddleware);
 
 // POST /api/posts/upload - handles single image upload with error handling
-router.post('/upload', (req, res, next) => {
-  upload.single('image')(req, res, (err) => {
+router.post('/upload', (req, res) => {
+  upload.single('image')(req, res, async (err) => {
     if (err) {
       return res.status(400).json({ success: false, message: err.message });
     }
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file uploaded.' });
     }
-    const fileUrl = `/uploads/${req.file.filename}`;
-    return res.json({ success: true, url: fileUrl });
+    try {
+      const url = await saveUploadedFile(req.file);
+      return res.json({ success: true, url });
+    } catch (uploadErr) {
+      console.error('[Upload Error]', uploadErr.message);
+      return res.status(500).json({
+        success: false,
+        message: uploadErr.message || 'Failed to upload file.',
+      });
+    }
   });
 });
 

@@ -44,6 +44,7 @@ const config = {
   storage: {
     provider: process.env.STORAGE_PROVIDER || 'local',
     localUploadDir: process.env.LOCAL_UPLOAD_DIR || 'uploads',
+    blobToken: process.env.BLOB_READ_WRITE_TOKEN || '',
   },
 
   aws: {
