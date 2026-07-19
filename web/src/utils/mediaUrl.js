@@ -1,5 +1,15 @@
-// Helpers for post media URLs. Fit mode is stored as a URL fragment (#contain, #square)
-// but must not be included in img/video src — fragments are for CSS hints only.
+// Upload paths stay relative (/uploads/...) so Vite (dev) and Vercel (prod) can proxy them.
+
+export function resolveMediaUrl(url) {
+  if (!url || typeof url !== 'string') return url
+
+  if (url.startsWith('/uploads/')) return url
+
+  const idx = url.indexOf('/uploads/')
+  if (idx !== -1) return url.slice(idx)
+
+  return url
+}
 
 export function getMediaFit(url) {
   if (!url) return 'cover'
@@ -10,5 +20,5 @@ export function getMediaFit(url) {
 
 export function getMediaSrc(url) {
   if (!url) return url
-  return url.split('#')[0]
+  return resolveMediaUrl(url).split('#')[0]
 }

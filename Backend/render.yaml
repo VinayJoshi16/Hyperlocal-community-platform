@@ -7,11 +7,17 @@ services:
     startCommand: node server.js
     healthCheckPath: /health
     plan: free
+    disk:
+      name: uploads
+      mountPath: /var/data/uploads
+      sizeGB: 1
     envVars:
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 10000
+      - key: LOCAL_UPLOAD_DIR
+        value: /var/data/uploads
       - key: DATABASE_URL
         sync: false
       - key: JWT_ACCESS_SECRET

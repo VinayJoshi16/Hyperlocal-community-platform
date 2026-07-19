@@ -304,11 +304,12 @@ export default function PostCard({ post }) {
         {postState.file_urls && postState.file_urls.length > 0 && (
           <div className="mt-4 space-y-2 select-none">
             {postState.file_urls.map((url, idx) => {
-              const fileName = url.substring(url.lastIndexOf('-') + 1) || url.substring(url.lastIndexOf('/') + 1);
+              const src = getMediaSrc(url)
+              const fileName = src.substring(src.lastIndexOf('-') + 1) || src.substring(src.lastIndexOf('/') + 1);
               return (
                 <a
                   key={idx}
-                  href={url}
+                  href={src}
                   download
                   onClick={(e) => e.stopPropagation()}
                   className="flex items-center justify-between p-3.5 border border-stone-200/80 rounded-xl bg-[#FAFAF9]/40 hover:bg-stone-50/50 hover:border-stone-300 transition-all text-xs font-semibold text-stone-700"

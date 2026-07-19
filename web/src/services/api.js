@@ -3,6 +3,7 @@
 // and handles token refresh when a 401 is received.
 
 import axios from 'axios'
+import { resolveMediaUrl } from '../utils/mediaUrl'
 
 const BASE_URL = import.meta.env.DEV 
   ? '' 
@@ -48,22 +49,11 @@ function processQueue(error, token = null) {
   failedQueue = []
 }
 
-const baseHost = import.meta.env.DEV 
-  ? 'http://localhost:5000' 
-  : (import.meta.env.VITE_API_URL 
-      ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
-      : 'https://neighbourhub-backend.onrender.com');
-
-const cleanHost = baseHost.replace(/\/$/, '');
-
 function resolveUploadUrls(data) {
   if (!data) return data;
   
   if (typeof data === 'string') {
-    if (data.startsWith('/uploads/')) {
-      return `${cleanHost}${data}`;
-    }
-    return data;
+    return resolveMediaUrl(data);
   }
   
   if (Array.isArray(data)) {

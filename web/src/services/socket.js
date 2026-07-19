@@ -5,6 +5,18 @@
 import { io } from 'socket.io-client'
 import { store } from '../redux/store'
 import { addNewPost, setEmergencyAlert } from '../redux/slices/feedSlice'
+import { resolveMediaUrl } from '../utils/mediaUrl'
+
+function normalizePostMedia(post) {
+  if (!post || typeof post !== 'object') return post
+  return {
+    ...post,
+    media_urls: post.media_urls?.map(resolveMediaUrl),
+    video_urls: post.video_urls?.map(resolveMediaUrl),
+    file_urls: post.file_urls?.map(resolveMediaUrl),
+    author_avatar: resolveMediaUrl(post.author_avatar),
+  }
+}
 
 const BACKEND_URL = import.meta.env.VITE_API_URL 
   ? import.meta.env.VITE_API_URL.replace(/\/api$/, '') 
@@ -47,13 +59,14 @@ export function connectSocket() {
 
   // New post arrived in one of the user's communities
   socket.on('new_post', (post) => {
-    store.dispatch(addNewPost(post))
+    store.dispatch(addNewPost(normalizePostMedia(post)))
   })
 
   // Emergency alert - shown as full banner + added to feed
   socket.on('emergency_alert', (post) => {
-    store.dispatch(setEmergencyAlert(post))
-    store.dispatch(addNewPost(post))
+    const normalized = normalizePostMedia(post)
+    store.dispatch(setEmergencyAlert(normalized))
+    store.dispatch(addNewPost(normalized))
   })
 
   return socket
