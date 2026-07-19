@@ -120,7 +120,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain max-w-feed mx-auto w-full px-4 py-8 space-y-6">
+    <div className="lg:flex-1 lg:min-h-0 lg:overflow-y-auto lg:overscroll-contain scrollbar-hide max-w-feed mx-auto w-full px-4 py-8 space-y-6">
       
       {/* Profile Card Header */}
       <div className="card p-6 bg-white border border-stone-200 rounded-xl shadow-card relative">

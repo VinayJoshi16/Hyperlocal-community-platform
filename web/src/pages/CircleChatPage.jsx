@@ -701,7 +701,7 @@ export default function CircleChatPage() {
         ) : (
           <>
             {/* Messages Feed */}
-            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain p-6 space-y-4">
+            <div className="flex-1 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide p-6 space-y-4">
               {messages.length === 0 ? (
                 <div className="h-full flex flex-col items-center justify-center text-center p-6 text-stone-400 space-y-2">
                   <span className="text-xl">💬</span>
@@ -821,7 +821,7 @@ export default function CircleChatPage() {
 
       {/* Right Column: Interactive Sidebar Widgets (Collaboration Lounge) */}
       {isMember && (
-        <aside className="w-full xl:w-[340px] flex-shrink-0 flex flex-col gap-6 xl:h-full xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain pr-1 pb-4">
+        <aside className="w-full xl:w-[340px] flex-shrink-0 flex flex-col gap-6 xl:h-full xl:min-h-0 xl:overflow-y-auto xl:overscroll-contain scrollbar-hide pr-1 pb-4">
           
           {/* Upcoming Shared Events Widget */}
           <div className="bg-white border border-stone-200/90 rounded-3xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] text-left space-y-4">
@@ -1173,7 +1173,7 @@ export default function CircleChatPage() {
             </div>
 
             {/* Scrollable body */}
-            <div className="flex-1 overflow-y-auto p-6 space-y-6">
+            <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-6">
               
               {/* Avatar Section */}
               <div className="flex flex-col items-center gap-3">
