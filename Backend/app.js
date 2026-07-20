@@ -20,6 +20,10 @@ const { errorMiddleware, notFoundMiddleware } = require('./src/middleware/errorM
 
 const app = express();
 
+// Trust reverse proxy headers (Render, Cloudflare, Vercel, Nginx, etc.)
+// Required for express-rate-limit to extract real client IP addresses.
+app.set('trust proxy', 1);
+
 app.use(
   helmet({
     crossOriginEmbedderPolicy: false,
@@ -66,7 +70,7 @@ if (config.nodeEnv === 'development') {
 // ─── Global rate limiter ──────────────────────────────────────────────────────
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 1000,
   standardHeaders: true,
   legacyHeaders: false,
   message: {

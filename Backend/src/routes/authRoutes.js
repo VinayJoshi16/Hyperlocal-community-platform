@@ -37,7 +37,7 @@ const otpLimiter = rateLimit({
 // General auth limiter - looser, just prevents brute-forcing verify endpoint
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
+  max: 100,
   message: {
     success: false,
     message: 'Too many requests. Please slow down.',
