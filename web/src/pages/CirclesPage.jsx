@@ -45,9 +45,7 @@ export default function CirclesPage() {
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   useEffect(() => {
-    if (activeLocation?.id) {
-      fetchCircles()
-    }
+    fetchCircles()
   }, [activeLocation?.id])
 
   async function fetchCircles() {

@@ -15,23 +15,33 @@ async function checkMembership(circleId, userId) {
  */
 async function getCircles(req, res) {
   const userId = req.user.id;
-  const locationId = req.header('X-Active-Location-Id');
-
-  if (!locationId) {
-    return res.status(400).json({ error: 'X-Active-Location-Id header is required' });
-  }
+  let locationId = req.header('X-Active-Location-Id');
 
   try {
-    // 1. Get all circles at this location OR circles where the user is a member
+    // If no location header is passed, fallback to user's primary location
+    if (!locationId) {
+      const locRes = await query(
+        'SELECT location_id FROM user_locations WHERE user_id = $1 AND is_primary = true LIMIT 1',
+        [userId]
+      );
+      if (locRes.rows.length > 0) {
+        locationId = locRes.rows[0].location_id;
+      }
+    }
+
+    // Return circles that:
+    // 1. Belong to the requested location, OR
+    // 2. The user is a member of, OR
+    // 3. Are PUBLIC circles (so any user can discover and join them)
     const circlesRes = await query(
       `SELECT c.*, 
               (SELECT COUNT(*)::int FROM circle_members WHERE circle_id = c.id) as member_count,
               m.role as my_role
        FROM circles c
        LEFT JOIN circle_members m ON m.circle_id = c.id AND m.user_id = $1
-       WHERE c.location_id = $2 OR m.role IS NOT NULL
+       WHERE ($2::uuid IS NULL OR c.location_id = $2::uuid OR m.role IS NOT NULL OR c.privacy = 'public')
        ORDER BY c.last_message_at DESC, c.created_at DESC`,
-      [userId, locationId]
+      [userId, locationId || null]
     );
 
     const circles = circlesRes.rows;
@@ -188,6 +198,12 @@ async function joinCircle(req, res) {
         'INSERT INTO circle_members (circle_id, user_id, role) VALUES ($1, $2, $3)',
         [id, userId, 'member']
       );
+
+      const io = req.app.get('io');
+      if (io) {
+        io.to(`circle:${id}`).emit('circle_member_added', { circle_id: id, user_id: userId });
+      }
+
       return res.json({ status: 'joined', role: 'member' });
     } else if (circle.privacy === 'private') {
       // Create Join Request
@@ -695,23 +711,26 @@ async function toggleJoinCircleEvent(req, res) {
  * Member Manager direct add & search
  */
 async function searchNeighborhoodUsers(req, res) {
+  const currentUserId = req.user.id;
   const activeLocationId = req.header('X-Active-Location-Id');
   const { q } = req.query;
-
-  if (!activeLocationId) {
-    return res.status(400).json({ error: 'X-Active-Location-Id is required' });
-  }
+  const searchTerm = `%${(q || '').trim()}%`;
 
   try {
-    // Search users who are associated with this location
+    // Search all registered users by name or email, excluding the current user.
+    // Order by users in the same location first, then by name.
     const searchRes = await query(
-      `SELECT u.id, u.name, u.email 
+      `SELECT DISTINCT u.id, u.name, u.email, u.avatar_url,
+              EXISTS(
+                SELECT 1 FROM user_locations ul 
+                WHERE ul.user_id = u.id AND ul.location_id = $1
+              ) as is_local
        FROM users u
-       JOIN user_locations ul ON ul.user_id = u.id
-       WHERE ul.location_id = $1
-         AND (u.name ILIKE $2 OR u.email ILIKE $2)
-       LIMIT 10`,
-      [activeLocationId, `%${q || ''}%`]
+       WHERE u.id != $2
+         AND (u.name ILIKE $3 OR u.email ILIKE $3)
+       ORDER BY is_local DESC, u.name ASC
+       LIMIT 15`,
+      [activeLocationId || '00000000-0000-0000-0000-000000000000', currentUserId, searchTerm]
     );
 
     res.json(searchRes.rows);
