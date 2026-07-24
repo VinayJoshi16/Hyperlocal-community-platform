@@ -16,6 +16,7 @@ export default {
       },
       fontFamily: {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        display: ['Fraunces', 'Georgia', 'serif'],
       },
       maxWidth: {
         feed: '720px',   // balanced readable layout for feed/detail/profile pages
