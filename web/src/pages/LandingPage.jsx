@@ -26,6 +26,9 @@ export default function LandingPage() {
         <SocialFeedShowcase />
       </ScrollRevealer>
       <ScrollRevealer>
+        <AIFeaturesShowcase />
+      </ScrollRevealer>
+      <ScrollRevealer>
         <JourneySteps />
       </ScrollRevealer>
       <ScrollRevealer>
@@ -33,9 +36,6 @@ export default function LandingPage() {
       </ScrollRevealer>
       <ScrollRevealer>
         <LiveFeedShowcase />
-      </ScrollRevealer>
-      <ScrollRevealer>
-        <AIFeaturesShowcase />
       </ScrollRevealer>
       <ScrollRevealer>
         <StatsBand />

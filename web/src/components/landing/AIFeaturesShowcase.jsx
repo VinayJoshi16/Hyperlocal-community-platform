@@ -2,9 +2,9 @@ import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Wand2, Languages, ShieldAlert, SmilePlus, Lightbulb,
-  ShieldCheck, Search, Images, Zap, Check, X, ArrowRight, Sparkles
+  ShieldCheck, Search, Images, Zap, Check, X, Sparkles
 } from 'lucide-react'
-import { fadeUpSmall, stagger, viewportOnce } from './motionPresets'
+import { fadeUpSmall, viewportOnce } from './motionPresets'
 
 /* ── Individual premium live demos ───────────────────────────────────────── */
 
@@ -21,7 +21,7 @@ function TextEnhanceDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 space-y-2.5 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 space-y-2.5 shadow-inner">
       <div className="flex items-center justify-between">
         <span className="text-[9px] font-bold text-stone-400 uppercase tracking-widest">Raw Input</span>
         <span className="text-[9px] font-bold text-violet-500 uppercase tracking-widest flex items-center gap-1">
@@ -29,7 +29,7 @@ function TextEnhanceDemo() {
         </span>
       </div>
       <div className="space-y-2">
-        <p className="text-[11px] font-mono text-stone-400 line-through bg-stone-100 px-2 py-1 rounded">
+        <p className="text-[11px] font-mono text-stone-400 line-through bg-stone-100 px-2.5 py-1.5 rounded">
           {pairs[i][0]}
         </p>
         <AnimatePresence mode="wait">
@@ -39,7 +39,7 @@ function TextEnhanceDemo() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: 6 }}
             transition={{ duration: 0.3 }}
-            className="text-[11.5px] font-semibold text-[#1C1917] bg-white border border-stone-150 px-2.5 py-1.5 rounded-lg shadow-sm"
+            className="text-[11.5px] font-semibold text-[#1C1917] bg-white border border-stone-150 px-3 py-2 rounded-lg shadow-sm"
           >
             {pairs[i][1]}
           </motion.p>
@@ -62,7 +62,7 @@ function TranslateDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 flex flex-col justify-between h-20 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 flex flex-col justify-between h-24 shadow-inner">
       <div className="flex justify-between items-center text-[9px] font-bold text-stone-400 uppercase tracking-wider">
         <span>Translation Active</span>
         <span className="text-cyan-600">{langs[i].lang}</span>
@@ -97,7 +97,7 @@ function SpamDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 space-y-2.5 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 space-y-2.5 shadow-inner">
       <div className="flex items-center justify-between text-[9px] font-bold text-stone-400 uppercase tracking-wider">
         <span>Spam Filter Integrity</span>
         <span className="text-emerald-600 font-extrabold">{score}% Trust Score</span>
@@ -124,9 +124,9 @@ function SpamDemo() {
 function SentimentDemo() {
   const [i, setI] = useState(0)
   const states = [
-    { emoji: '😊', label: 'Positive', color: 'bg-emerald-500', barColor: 'from-emerald-400 to-emerald-500', w: '88%' },
-    { emoji: '😐', label: 'Neutral', color: 'bg-amber-400', barColor: 'from-amber-300 to-amber-400', w: '52%' },
-    { emoji: '😟', label: 'Concerned', color: 'bg-red-400', barColor: 'from-red-400 to-red-500', w: '18%' },
+    { emoji: '😊', label: 'Positive', barColor: 'from-emerald-400 to-emerald-500', w: '88%' },
+    { emoji: '😐', label: 'Neutral', barColor: 'from-amber-300 to-amber-400', w: '52%' },
+    { emoji: '😟', label: 'Concerned', barColor: 'from-red-400 to-red-500', w: '18%' },
   ]
   useEffect(() => {
     const t = setInterval(() => setI((v) => (v + 1) % states.length), 2800)
@@ -134,8 +134,8 @@ function SentimentDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 flex items-center gap-3 shadow-inner h-20">
-      <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 shadow-sm flex items-center justify-center">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 flex items-center gap-3 shadow-inner h-24">
+      <div className="w-10 h-10 rounded-xl bg-white border border-stone-200 shadow-sm flex items-center justify-center flex-shrink-0">
         <motion.span 
           key={i} 
           initial={{ scale: 0.5, rotate: -15 }} 
@@ -145,7 +145,7 @@ function SentimentDemo() {
           {states[i].emoji}
         </motion.span>
       </div>
-      <div className="flex-1 space-y-1.5">
+      <div className="flex-1 space-y-1.5 min-w-0">
         <div className="h-1.5 w-full rounded-full bg-stone-200 overflow-hidden shadow-inner">
           <motion.div
             className={`h-full rounded-full bg-gradient-to-r ${states[i].barColor}`}
@@ -165,7 +165,6 @@ function SuggestDemo() {
   const categories = [
     ['🎉 Diwali', '📢 Notice', '🧹 Clean-up'],
     ['🐈 Lost Pet', '📦 Delivery', '💡 General'],
-    ['🚨 Urgent', '🔧 Plumbing', '🚗 Parking']
   ]
   const [i, setI] = useState(0)
   useEffect(() => {
@@ -174,7 +173,7 @@ function SuggestDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 space-y-2 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 space-y-2 shadow-inner h-24 flex flex-col justify-center">
       <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Suggested Tags</span>
       <div className="flex flex-wrap gap-1.5">
         <AnimatePresence mode="popLayout">
@@ -204,10 +203,10 @@ function ModerationDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 flex items-center justify-between h-20 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 flex items-center justify-between h-24 shadow-inner">
       <div className="flex flex-col justify-center">
         <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider">Gateway Status</span>
-        <span className="text-[10px] text-[#78716C] font-semibold mt-0.5">Automated screening</span>
+        <span className="text-[10px] text-[#78716C] font-semibold mt-0.5 font-sans">Automated screening</span>
       </div>
       <AnimatePresence mode="wait">
         {flagged ? (
@@ -245,7 +244,7 @@ function SearchDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 space-y-2 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 space-y-2 shadow-inner">
       <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Semantic Search</span>
       <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-white border border-stone-200 shadow-sm">
         <Search size={12} className="text-[#2563EB] flex-shrink-0" />
@@ -273,7 +272,7 @@ function MediaDemo() {
   }, [])
 
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 flex items-center justify-between h-20 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 flex items-center justify-between h-24 shadow-inner">
       <div className="flex items-center gap-2">
         <div className="w-8 h-8 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
           <Images size={14} className="text-indigo-600" />
@@ -302,7 +301,7 @@ function MediaDemo() {
             exit={{ opacity: 0 }}
             className="text-[10px] font-bold text-emerald-600 bg-emerald-50 border border-emerald-100 px-2 py-1 rounded"
           >
-            WebP/AVIF Ready
+            Optimized
           </motion.span>
         )}
       </AnimatePresence>
@@ -312,7 +311,7 @@ function MediaDemo() {
 
 function RealtimeDemo() {
   return (
-    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-3.5 flex items-center justify-between h-20 shadow-inner">
+    <div className="bg-stone-50 border border-stone-200/60 rounded-xl p-4 flex items-center justify-between h-24 shadow-inner">
       <div className="flex items-center gap-2.5">
         <span className="relative flex h-3 w-3">
           <motion.span
@@ -324,7 +323,7 @@ function RealtimeDemo() {
         </span>
         <div>
           <span className="text-[9px] font-bold text-stone-400 uppercase tracking-wider block">Pipeline Speed</span>
-          <span className="text-[10px] font-bold text-stone-600">Processed in <b className="text-violet-600">0.8s</b></span>
+          <span className="text-[10px] font-bold text-[#1C1917]">Processed in <b className="text-violet-600">0.8s</b></span>
         </div>
       </div>
       <Zap size={15} className="text-violet-500 fill-violet-50" />
@@ -332,172 +331,342 @@ function RealtimeDemo() {
   )
 }
 
-/* ── Feature registry with Bento Grid configurations ─────────────────────── */
+/* ── Grouped Features Data ───────────────────────────────────────────────── */
 
-const features = [
-  { 
-    icon: Wand2, 
-    tile: 'bg-violet-50 border-violet-100', 
-    tone: 'text-violet-600', 
-    title: 'AI Text Enhancement', 
-    body: 'Cleans up rushed typos, corrects grammar, and formats messages into clean, readable announcements — preserving tone and original intent.', 
-    Demo: TextEnhanceDemo,
-    span: 'sm:col-span-2 lg:col-span-2'
+const categories = [
+  {
+    id: 'content',
+    label: 'Writing & Translation',
+    description: 'Tools that keep communications clean, clear, and readable across all language groups.',
+    color: 'from-violet-500 to-indigo-600',
+    icon: Wand2,
+    features: [
+      {
+        icon: Wand2,
+        tile: 'bg-violet-50 border-violet-100',
+        tone: 'text-violet-600',
+        title: 'AI Text Enhancement',
+        tagline: 'Converts typos and shorthand to polite, structured updates.',
+        body: 'Automatically cleans up spelling errors, improves formatting, and transforms quick notes into polite and legible community bulletins without changing original meanings.',
+        Demo: TextEnhanceDemo
+      },
+      {
+        icon: Languages,
+        tile: 'bg-cyan-50 border-cyan-100',
+        tone: 'text-cyan-600',
+        title: 'Instant AI Translation',
+        tagline: 'Bridges neighbor language gaps instantly.',
+        body: 'Translates feed bulletins and chat logs into multiple community languages on-the-fly, ensuring no neighbor is left out of critical announcements.',
+        Demo: TranslateDemo
+      },
+      {
+        icon: Lightbulb,
+        tile: 'bg-blue-50 border-blue-100',
+        tone: 'text-blue-600',
+        title: 'Smart Categorization',
+        tagline: 'Understands and tags posts dynamically.',
+        body: 'Analyzes post text as residents write, recommending the most relevant category tags (e.g. notices, events, services) to catalog posts accurately.',
+        Demo: SuggestDemo
+      }
+    ]
   },
-  { 
-    icon: ShieldAlert, 
-    tile: 'bg-rose-50 border-rose-100', 
-    tone: 'text-rose-600', 
-    title: 'Anti-Spam Shield', 
-    body: 'Intercepts scraper bots, promotions, and repetitive posts before they ever hit the neighborhood feed.', 
-    Demo: SpamDemo,
-    span: 'sm:col-span-1 lg:col-span-1'
+  {
+    id: 'safety',
+    label: 'Safety & Moderation',
+    description: '24/7 protection keeping your feed constructive, safe, and spam-free.',
+    color: 'from-emerald-500 to-teal-600',
+    icon: ShieldCheck,
+    features: [
+      {
+        icon: ShieldAlert,
+        tile: 'bg-rose-50 border-rose-100',
+        tone: 'text-rose-600',
+        title: 'Anti-Spam Shield',
+        tagline: 'Keeps commercial spam and scrapers out.',
+        body: 'Applies real-time spam diagnostics to flag bot activity, scraper links, and commercial advertising before they disturb the community feed.',
+        Demo: SpamDemo
+      },
+      {
+        icon: ShieldCheck,
+        tile: 'bg-emerald-50 border-emerald-100',
+        tone: 'text-emerald-600',
+        title: 'Automated Moderation',
+        tagline: 'Real-time media and text safety screening.',
+        body: 'Reviews text content and image attachments against configured community guidelines pre-publish to shield kids and residents from abuse.',
+        Demo: ModerationDemo
+      },
+      {
+        icon: SmilePlus,
+        tile: 'bg-amber-50 border-amber-100',
+        tone: 'text-amber-600',
+        title: 'Sentiment Monitoring',
+        tagline: 'Flags hostile discussions before they grow.',
+        body: 'Monitors long comment sections for sudden spikes in hostile or aggressive vocabulary, letting administrators step in early to resolve issues.',
+        Demo: SentimentDemo
+      }
+    ]
   },
-  { 
-    icon: Languages, 
-    tile: 'bg-cyan-50 border-cyan-100', 
-    tone: 'text-cyan-600', 
-    title: 'Instant AI Translation', 
-    body: 'Translates feed announcements and chat messages in real-time so every resident stays informed.', 
-    Demo: TranslateDemo,
-    span: 'sm:col-span-1 lg:col-span-1'
-  },
-  { 
-    icon: Search, 
-    tile: 'bg-stone-100 border-stone-200', 
-    tone: 'text-stone-600', 
-    title: 'Intelligent Search', 
-    body: 'Queries posts by conceptual meaning rather than exact keywords. Search like a resident thinks.', 
-    Demo: SearchDemo,
-    span: 'sm:col-span-1 lg:col-span-1'
-  },
-  { 
-    icon: ShieldCheck, 
-    tile: 'bg-emerald-50 border-emerald-100', 
-    tone: 'text-emerald-600', 
-    title: 'Automated Moderation', 
-    body: 'Screens text and media attachments against safety guidelines pre-publish to shield the community.', 
-    Demo: ModerationDemo,
-    span: 'sm:col-span-1 lg:col-span-1'
-  },
-  { 
-    icon: SmilePlus, 
-    tile: 'bg-amber-50 border-amber-100', 
-    tone: 'text-amber-600', 
-    title: 'Sentiment Analysis', 
-    body: 'Monitors discussion threads for escalating hostility to help society administrators step in early.', 
-    Demo: SentimentDemo,
-    span: 'sm:col-span-1 lg:col-span-1'
-  },
-  { 
-    icon: Lightbulb, 
-    tile: 'bg-blue-50 border-blue-100', 
-    tone: 'text-blue-600', 
-    title: 'Smart Categorization', 
-    body: 'Understands post content as residents type and suggests relevant tags, helping catalog information seamlessly.', 
-    Demo: SuggestDemo,
-    span: 'sm:col-span-2 lg:col-span-2'
-  },
-  { 
-    icon: Images, 
-    tile: 'bg-indigo-50 border-indigo-100', 
-    tone: 'text-indigo-600', 
-    title: 'Media Optimization', 
-    body: 'Transcodes, compresses, and delivers image arrays and video clips for ultra-fast mobile loading.', 
-    Demo: MediaDemo,
-    span: 'sm:col-span-1 lg:col-span-1'
-  },
-  { 
-    icon: Zap, 
-    tile: 'bg-violet-50 border-violet-100', 
-    tone: 'text-violet-600', 
-    title: 'Real-time AI Processing', 
-    body: 'Runs parsing, screening, translation, and tagging pipelines in under a second per post using highly optimized server resources.', 
-    Demo: RealtimeDemo,
-    span: 'sm:col-span-2 lg:col-span-2'
-  },
+  {
+    id: 'platform',
+    label: 'Search & Performance',
+    description: 'Behind-the-scenes engineering delivering high speeds and smart lookups.',
+    color: 'from-blue-500 to-cyan-600',
+    icon: Zap,
+    features: [
+      {
+        icon: Search,
+        tile: 'bg-stone-100 border-stone-200',
+        tone: 'text-stone-600',
+        title: 'Intelligent Search',
+        tagline: 'Find information by meaning, not just words.',
+        body: 'Understands query intent rather than matching strings. Searching for "leaking pipe" automatically suggests posts containing "plumbing repairs".',
+        Demo: SearchDemo
+      },
+      {
+        icon: Images,
+        tile: 'bg-indigo-50 border-indigo-100',
+        tone: 'text-indigo-600',
+        title: 'Media Optimization',
+        tagline: 'Fast loading formats for every device.',
+        body: 'Compresses uploaded photos and video attachments automatically into highly optimized WebP and AVIF formats, ensuring instant loads on slow networks.',
+        Demo: MediaDemo
+      },
+      {
+        icon: Zap,
+        tile: 'bg-violet-50 border-violet-100',
+        tone: 'text-violet-600',
+        title: 'Sub-Second Speeds',
+        tagline: 'Parallel pipelines optimize in real-time.',
+        body: 'Executes parallel translation, moderation, and tag assignment pipelines in under a second per post to keep app navigation snappy.',
+        Demo: RealtimeDemo
+      }
+    ]
+  }
 ]
 
 export default function AIFeaturesShowcase() {
-  return (
-    <section className="relative bg-[#FAFAF9] py-24 md:py-28 px-6 w-full overflow-hidden">
-      {/* Premium Background Grid Pattern */}
-      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e7e5e4_1px,transparent_1px),linear-gradient(to_bottom,#e7e5e4_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-60 pointer-events-none" />
+  const [activeCategoryId, setActiveCategoryId] = useState('content')
+  const [activeFeatureIndex, setActiveFeatureIndex] = useState(0)
+  const [isAutoplayPaused, setIsAutoplayPaused] = useState(false)
 
-      <div className="relative max-w-[1280px] mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header Section */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-16 gap-6">
-          <motion.div
-            variants={fadeUpSmall}
-            initial="hidden"
-            whileInView="show"
-            viewport={viewportOnce}
-            className="max-w-xl"
-          >
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-150 text-[10px] font-extrabold text-[#2563EB] uppercase tracking-wider mb-3">
-              <Sparkles size={11} className="fill-blue-50" /> AI-Powered Community Engine
-            </div>
-            <h2 className="text-3xl md:text-[38px] font-black text-[#1C1917] tracking-tight leading-[1.1] bg-gradient-to-r from-stone-900 via-stone-800 to-stone-700 bg-clip-text text-transparent">
-              The intelligence working behind every post
-            </h2>
-            <p className="mt-4 text-[14.5px] text-[#78716C] leading-relaxed font-semibold">
-              Free-tier AI modules quietly clean up, translate, screen, and tag content — keeping the community feed fast, legible, and safe for all neighbors at once.
-            </p>
-          </motion.div>
-          
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={viewportOnce}
-            transition={{ delay: 0.2 }}
-            className="flex-shrink-0"
-          >
-            <a 
-              href="#journey" 
-              className="inline-flex items-center gap-2 px-5 py-3 rounded-full bg-white border border-stone-200/80 shadow-sm text-[12px] font-bold text-stone-700 hover:bg-stone-50 hover:border-stone-300 transition-all group"
-            >
-              See how it works <ArrowRight size={13} className="transition-transform group-hover:translate-x-1" />
-            </a>
-          </motion.div>
+  const activeCategory = categories.find((c) => c.id === activeCategoryId)
+  const activeFeature = activeCategory.features[activeFeatureIndex]
+
+  // Reset active feature index when changing category manually
+  const handleCategoryChange = (id) => {
+    setActiveCategoryId(id)
+    setActiveFeatureIndex(0)
+    // Momentarily pause autoplay to prevent instant jumping
+    setIsAutoplayPaused(true)
+    setTimeout(() => setIsAutoplayPaused(false), 4000)
+  }
+
+  const handleFeatureChange = (index) => {
+    setActiveFeatureIndex(index)
+    setIsAutoplayPaused(true)
+    setTimeout(() => setIsAutoplayPaused(false), 4000)
+  }
+
+  // 2-Second Autoplay Cycle
+  useEffect(() => {
+    if (isAutoplayPaused) return
+
+    const interval = setInterval(() => {
+      const catIndex = categories.findIndex((c) => c.id === activeCategoryId)
+      const nextFeatureIndex = activeFeatureIndex + 1
+
+      if (nextFeatureIndex < activeCategory.features.length) {
+        // Advance to next feature in the same category
+        setActiveFeatureIndex(nextFeatureIndex)
+      } else {
+        // Wrap to the next category
+        const nextCatIndex = (catIndex + 1) % categories.length
+        const nextCat = categories[nextCatIndex]
+        setActiveCategoryId(nextCat.id)
+        setActiveFeatureIndex(0)
+      }
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [activeCategoryId, activeFeatureIndex, isAutoplayPaused, activeCategory.features.length])
+
+  // Get active color accents for glowing points
+  const getGlowStyles = (catId) => {
+    switch (catId) {
+      case 'content':
+        return {
+          shadow: 'shadow-[0_0_20px_rgba(139,92,246,0.14)]',
+          border: 'border-violet-300',
+          dot: 'bg-violet-500',
+          bgGlow: 'bg-violet-500/5'
+        }
+      case 'safety':
+        return {
+          shadow: 'shadow-[0_0_20px_rgba(16,185,129,0.14)]',
+          border: 'border-emerald-300',
+          dot: 'bg-emerald-500',
+          bgGlow: 'bg-emerald-500/5'
+        }
+      case 'platform':
+        return {
+          shadow: 'shadow-[0_0_20px_rgba(37,99,235,0.14)]',
+          border: 'border-blue-300',
+          dot: 'bg-blue-500',
+          bgGlow: 'bg-blue-500/5'
+        }
+      default:
+        return {}
+    }
+  }
+
+  const activeGlow = getGlowStyles(activeCategoryId)
+
+  return (
+    <section 
+      className="relative bg-[#FAFAF9] py-24 md:py-28 px-6 w-full overflow-hidden"
+      onMouseEnter={() => setIsAutoplayPaused(true)}
+      onMouseLeave={() => setIsAutoplayPaused(false)}
+    >
+      {/* Background grid */}
+      <div className="absolute inset-0 bg-[linear-gradient(to_right,#e7e5e4_1px,transparent_1px),linear-gradient(to_bottom,#e7e5e4_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)] opacity-50 pointer-events-none" />
+
+      <div className="relative max-w-[1200px] mx-auto">
+        {/* Header */}
+        <div className="text-center max-w-xl mx-auto mb-16">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-150 text-[10px] font-extrabold text-[#2563EB] uppercase tracking-wider mb-4">
+            <Sparkles size={11} className="fill-blue-50" /> Community Intelligence Suite
+          </div>
+          <h2 className="text-3xl md:text-4xl font-black text-[#1C1917] tracking-tight bg-gradient-to-r from-stone-900 via-stone-800 to-stone-700 bg-clip-text text-transparent">
+            Core Platform Features
+          </h2>
+          <p className="mt-3 text-[14px] text-[#78716C] leading-relaxed font-semibold">
+            Hover over this section to pause autoplay, or click to explore the smart tools running behind your neighborhood feed.
+          </p>
         </div>
 
-        {/* Dynamic Bento Grid Layout */}
-        <motion.div
-          variants={stagger(0.05)}
-          initial="hidden"
-          whileInView="show"
-          viewport={viewportOnce}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
-        >
-          {features.map((f) => (
-            <motion.div
-              key={f.title}
-              variants={fadeUpSmall}
-              whileHover={{ 
-                y: -6,
-                boxShadow: '0 20px 40px -15px rgba(28,25,23,0.12)',
-              }}
-              transition={{ type: 'spring', stiffness: 350, damping: 25 }}
-              className={`group p-5 bg-gradient-to-b from-white to-stone-50/40 border border-stone-200 rounded-2xl flex flex-col justify-between ${f.span}`}
-            >
-              <div>
-                <div className="flex items-center gap-3.5 mb-3.5">
+        {/* 1. Category Switcher (Tabs) */}
+        <div className="flex justify-center p-1 bg-stone-200/60 rounded-xl max-w-lg mx-auto mb-10 border border-stone-200/40 relative z-10">
+          {categories.map((cat) => {
+            const CatIcon = cat.icon
+            const isCatActive = cat.id === activeCategoryId
+            const catGlow = getGlowStyles(cat.id)
+            return (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryChange(cat.id)}
+                className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-lg text-[12px] font-bold transition-all relative ${
+                  isCatActive ? 'text-stone-900' : 'text-[#78716C] hover:text-stone-900'
+                }`}
+              >
+                {isCatActive && (
                   <motion.div
-                    whileHover={{ rotate: -8, scale: 1.05 }}
-                    className={`w-10 h-10 rounded-xl border flex items-center justify-center flex-shrink-0 shadow-sm ${f.tile}`}
+                    layoutId="activeCategoryBg"
+                    className={`absolute inset-0 bg-white rounded-lg border border-stone-200/50 ${catGlow.shadow}`}
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+                <CatIcon size={14} className="relative z-10" />
+                <span className="relative z-10 hidden sm:inline">{cat.label}</span>
+                {isCatActive && (
+                  <span className={`relative z-10 w-1.5 h-1.5 rounded-full ${catGlow.dot} animate-pulse`} />
+                )}
+              </button>
+            )
+          })}
+        </div>
+
+        {/* 2. Main Feature Explorer Container */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch min-h-[460px]">
+          {/* Sub-Feature selector list */}
+          <div className="lg:col-span-5 flex flex-col gap-3 justify-center">
+            <span className="text-[10px] font-extrabold text-[#78716C] uppercase tracking-wider px-2 block mb-1">
+              Select Feature to View
+            </span>
+            {activeCategory.features.map((feat, index) => {
+              const FeatIcon = feat.icon
+              const isFeatActive = index === activeFeatureIndex
+              return (
+                <button
+                  key={feat.title}
+                  onClick={() => handleFeatureChange(index)}
+                  className={`text-left p-4 rounded-2xl border transition-all duration-200 flex items-start gap-4 ${
+                    isFeatActive
+                      ? `bg-white ${activeGlow.border} ${activeGlow.shadow} translate-x-1`
+                      : 'bg-transparent border-transparent hover:bg-white/40 hover:border-stone-200/40'
+                  }`}
+                >
+                  <div
+                    className={`w-9 h-9 rounded-xl border flex items-center justify-center flex-shrink-0 shadow-sm transition-colors relative ${
+                      isFeatActive ? feat.tile : 'bg-stone-100 border-stone-200 text-stone-500'
+                    }`}
                   >
-                    <f.icon size={18} className={f.tone} strokeWidth={2.2} />
-                  </motion.div>
-                  <h3 className="text-[14px] font-extrabold text-[#1C1917] tracking-tight">{f.title}</h3>
+                    <FeatIcon size={16} className={isFeatActive ? feat.tone : 'text-stone-500'} strokeWidth={2.2} />
+                    {isFeatActive && (
+                      <span className="absolute -top-0.5 -right-0.5 flex h-2 w-2">
+                        <span className={`animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 ${activeGlow.dot}`} />
+                        <span className={`relative inline-flex rounded-full h-2 w-2 ${activeGlow.dot}`} />
+                      </span>
+                    )}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-[13px] font-extrabold text-[#1C1917] tracking-tight">{feat.title}</h4>
+                      {isFeatActive && (
+                        <span className="text-[9px] font-extrabold text-stone-400 uppercase tracking-widest animate-pulse">Active</span>
+                      )}
+                    </div>
+                    <p className="text-[11.5px] text-[#78716C] leading-snug font-semibold mt-0.5 truncate">
+                      {feat.tagline}
+                    </p>
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+
+          {/* Large Showcase Panel */}
+          <div className="lg:col-span-7 flex">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeCategoryId}-${activeFeatureIndex}`}
+                initial={{ opacity: 0, scale: 0.98, x: 10 }}
+                animate={{ opacity: 1, scale: 1, x: 0 }}
+                exit={{ opacity: 0, scale: 0.98, x: -10 }}
+                transition={{ duration: 0.25 }}
+                className={`w-full bg-white border p-6 sm:p-8 rounded-3xl flex flex-col justify-between relative overflow-hidden transition-all duration-300 ${activeGlow.border} ${activeGlow.shadow}`}
+              >
+                {/* Embedded Ambient Glow Behind Card */}
+                <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[60px] pointer-events-none transition-colors duration-300 ${activeGlow.bgGlow}`} />
+
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3.5 mb-5">
+                    <div className={`w-11 h-11 rounded-xl border flex items-center justify-center flex-shrink-0 shadow-sm ${activeFeature.tile}`}>
+                      <activeFeature.icon size={20} className={activeFeature.tone} strokeWidth={2.2} />
+                    </div>
+                    <div>
+                      <span className="text-[10px] font-extrabold text-[#2563EB] uppercase tracking-wider block">
+                        {activeCategory.label}
+                      </span>
+                      <h3 className="text-lg font-black text-[#1C1917] tracking-tight mt-0.5">
+                        {activeFeature.title}
+                      </h3>
+                    </div>
+                  </div>
+                  <p className="text-[13px] text-[#78716C] leading-relaxed font-semibold mb-8">
+                    {activeFeature.body}
+                  </p>
                 </div>
-                <p className="text-[12px] text-[#78716C] leading-relaxed font-semibold mb-6">{f.body}</p>
-              </div>
-              <div className="mt-auto pt-4 border-t border-dashed border-stone-200/60">
-                <f.Demo />
-              </div>
-            </motion.div>
-          ))}
-        </motion.div>
+
+                <div className="border-t border-dashed border-stone-200/80 pt-6 relative z-10">
+                  <div className="text-[10px] font-extrabold text-[#78716C] uppercase tracking-wider mb-3">
+                    Live Demo Simulation
+                  </div>
+                  <activeFeature.Demo />
+                </div>
+              </motion.div>
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
     </section>
   )
