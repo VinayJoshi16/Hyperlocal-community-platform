@@ -467,7 +467,7 @@ export default function AIFeaturesShowcase() {
     setTimeout(() => setIsAutoplayPaused(false), 4000)
   }
 
-  // 2-Second Autoplay Cycle
+  // 1-Second Autoplay Cycle
   useEffect(() => {
     if (isAutoplayPaused) return
 
@@ -485,7 +485,7 @@ export default function AIFeaturesShowcase() {
         setActiveCategoryId(nextCat.id)
         setActiveFeatureIndex(0)
       }
-    }, 2000)
+    }, 1000)
 
     return () => clearInterval(interval)
   }, [activeCategoryId, activeFeatureIndex, isAutoplayPaused, activeCategory.features.length])
