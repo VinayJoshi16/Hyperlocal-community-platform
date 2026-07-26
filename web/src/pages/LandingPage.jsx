@@ -1,3 +1,6 @@
+import { useState, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { ArrowUp } from 'lucide-react'
 import LandingNavbar from '../components/landing/LandingNavbar'
 import Hero from '../components/landing/Hero'
 import TrustTicker from '../components/landing/TrustTicker'
@@ -13,6 +16,20 @@ import LandingFooter from '../components/landing/LandingFooter'
 import ScrollRevealer from '../components/landing/ScrollRevealer'
 
 export default function LandingPage() {
+  const [showScrollTop, setShowScrollTop] = useState(false)
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500)
+    }
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [])
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   return (
     <div className="min-h-screen bg-[#FAFAF9] text-[#44403C] flex flex-col font-sans antialiased selection:bg-blue-150 selection:text-blue-900 overflow-x-hidden">
       <LandingNavbar />
@@ -47,6 +64,24 @@ export default function LandingPage() {
         <CTASection />
       </ScrollRevealer>
       <LandingFooter />
+
+      {/* Floating Back to Top Button */}
+      <AnimatePresence>
+        {showScrollTop && (
+          <motion.button
+            key="back-to-top"
+            initial={{ opacity: 0, scale: 0.8, y: 15 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.8, y: 15 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+            onClick={scrollToTop}
+            className="fixed bottom-8 right-8 z-50 p-3.5 rounded-full bg-white border border-stone-250 shadow-[0_8px_30px_rgb(28,25,23,0.08)] hover:shadow-[0_8px_30px_rgb(28,25,23,0.14)] text-stone-700 hover:text-stone-900 hover:bg-stone-50 transition-all focus:outline-none focus:ring-2 focus:ring-[#2563EB]/40 flex items-center justify-center"
+            title="Scroll to top"
+          >
+            <ArrowUp size={16} className="stroke-[2.5]" />
+          </motion.button>
+        )}
+      </AnimatePresence>
     </div>
   )
 }
