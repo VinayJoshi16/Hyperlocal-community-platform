@@ -18,7 +18,7 @@ export default function CTASection() {
   const isAuthenticated = useSelector(selectIsAuthenticated)
 
   return (
-    <section className="relative bg-[#FAFAF9] py-20 px-6 w-full overflow-hidden">
+    <section className="relative bg-stone-50 py-20 px-6 w-full overflow-hidden">
       <div className="max-w-[1200px] mx-auto">
         <motion.div
           variants={fadeUp}

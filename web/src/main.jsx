@@ -20,7 +20,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
             duration: 4000,
             style: {
               background: '#292524',
-              color: '#fafaf9',
+              color: '#F4F3F0',
               fontSize: '14px',
               fontFamily: 'Inter, sans-serif',
               borderRadius: '10px',
@@ -28,10 +28,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
               boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
             },
             success: {
-              iconTheme: { primary: '#22c55e', secondary: '#fafaf9' },
+              iconTheme: { primary: '#22c55e', secondary: '#F4F3F0' },
             },
             error: {
-              iconTheme: { primary: '#ef4444', secondary: '#fafaf9' },
+              iconTheme: { primary: '#ef4444', secondary: '#F4F3F0' },
             },
           }}
         />

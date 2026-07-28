@@ -31,7 +31,7 @@ export default function LandingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#FAFAF9] text-[#44403C] flex flex-col font-sans antialiased selection:bg-blue-150 selection:text-blue-900 overflow-x-hidden">
+    <div className="min-h-screen bg-stone-50 text-[#44403C] flex flex-col font-sans antialiased selection:bg-blue-150 selection:text-blue-900 overflow-x-hidden">
       <LandingNavbar />
       <ScrollRevealer isFirst>
         <Hero />

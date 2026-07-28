@@ -69,7 +69,7 @@ export default function FeatureGrid() {
               variants={fadeUpSmall}
               whileHover={{ y: -6 }}
               transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-              className={`p-6 border border-[#E7E5E4] rounded-2xl bg-[#FAFAF9] flex flex-col justify-between text-left min-h-[190px] shadow-sm hover:shadow-[0_16px_32px_-12px_rgba(28,25,23,0.12)] hover:border-stone-300 transition-shadow duration-300 ${
+              className={`p-6 border border-[#E7E5E4] rounded-2xl bg-stone-50 flex flex-col justify-between text-left min-h-[190px] shadow-sm hover:shadow-[0_16px_32px_-12px_rgba(28,25,23,0.12)] hover:border-stone-300 transition-shadow duration-300 ${
                 f.accent ? 'border-l-2 border-l-[#F59E0B]' : ''
               }`}
             >

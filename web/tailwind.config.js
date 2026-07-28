@@ -8,8 +8,8 @@ export default {
       colors: {
         primary: colors.blue,
         stone: {
-          50:  '#fafaf9',  // page background
-          100: '#f5f5f4',  // card background
+          50:  '#F4F3F0',  // warm linen page background
+          100: '#ECEBE6',  // deeper accent background
           // warm neutrals, not cold grey
         },
         amber: colors.amber,

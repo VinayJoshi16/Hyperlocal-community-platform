@@ -366,7 +366,7 @@ export default function CreatePostForm() {
           <button
             type="button"
             onClick={() => setScopeDropdownOpen(!scopeDropdownOpen)}
-            className="w-full flex items-center justify-between p-3.5 border border-stone-200/80 rounded-xl bg-[#FAFAF9]/30 hover:bg-stone-50/50 hover:border-stone-300 transition-all text-left shadow-sm"
+            className="w-full flex items-center justify-between p-3.5 border border-stone-200/80 rounded-xl bg-stone-50/30 hover:bg-stone-50/50 hover:border-stone-300 transition-all text-left shadow-sm"
           >
             <div className="flex items-center gap-3 truncate pr-4">
               <div className="w-9 h-9 rounded-full bg-primary-50 border border-primary-100 flex items-center justify-center text-primary-600 shadow-sm flex-shrink-0">
@@ -515,7 +515,7 @@ export default function CreatePostForm() {
               placeholder="Enter a short, clear title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              className="w-full px-3.5 py-2.5 pr-14 border border-stone-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 bg-[#FAFAF9]/50 focus:bg-white transition-all placeholder:text-stone-400"
+              className="w-full px-3.5 py-2.5 pr-14 border border-stone-200/80 rounded-xl text-xs font-semibold focus:outline-none focus:border-primary-400 focus:ring-1 focus:ring-primary-100 bg-stone-50/50 focus:bg-white transition-all placeholder:text-stone-400"
               maxLength={80}
             />
             <span className="absolute right-3.5 bottom-2.5 text-[9px] font-bold text-stone-400 select-none">

@@ -24,7 +24,7 @@ export default function LandingNavbar() {
       transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
       className={`sticky top-0 z-50 w-full transition-all duration-300 ${
         scrolled
-          ? 'bg-[#FAFAF9]/90 backdrop-blur-md border-b border-[#E7E5E4] shadow-[0_1px_0_rgba(28,25,23,0.02)]'
+          ? 'bg-stone-50/90 backdrop-blur-md border-b border-[#E7E5E4] shadow-[0_1px_0_rgba(28,25,23,0.02)]'
           : 'bg-transparent border-b border-transparent'
       }`}
     >

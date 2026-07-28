@@ -523,7 +523,7 @@ export default function AIFeaturesShowcase() {
 
   return (
     <section 
-      className="relative bg-[#FAFAF9] py-24 md:py-28 px-6 w-full overflow-hidden"
+      className="relative bg-stone-50 py-24 md:py-28 px-6 w-full overflow-hidden"
       onMouseEnter={() => setIsAutoplayPaused(true)}
       onMouseLeave={() => setIsAutoplayPaused(false)}
     >

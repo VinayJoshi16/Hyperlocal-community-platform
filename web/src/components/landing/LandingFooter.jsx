@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 
 export default function LandingFooter() {
   return (
-    <footer className="bg-[#FAFAF9] border-t border-[#E7E5E4] pt-16 pb-12 px-6 w-full text-stone-600 font-sans">
+    <footer className="bg-stone-50 border-t border-[#E7E5E4] pt-16 pb-12 px-6 w-full text-stone-600 font-sans">
       <div className="max-w-[1200px] mx-auto grid grid-cols-1 md:grid-cols-12 gap-10 mb-12">
         {/* Brand column */}
         <div className="md:col-span-5 space-y-4">

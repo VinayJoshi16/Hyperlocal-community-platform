@@ -137,7 +137,7 @@ export default function LiveFeedShowcase() {
   const activeTab = tabs.find((t) => t.key === active)
 
   return (
-    <section id="inside" className="bg-[#FAFAF9] py-24 md:py-28 px-6 w-full">
+    <section id="inside" className="bg-stone-50 py-24 md:py-28 px-6 w-full">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
         <motion.div
           variants={fadeUp}
@@ -197,7 +197,7 @@ export default function LiveFeedShowcase() {
                   neighbourhub.app/feed
                 </span>
               </div>
-              <div className="bg-[#FAFAF9] rounded-[18px] p-4 min-h-[280px] flex items-center">
+              <div className="bg-stone-50 rounded-[18px] p-4 min-h-[280px] flex items-center">
                 <AnimatePresence mode="wait">
                   <motion.div
                     key={active}

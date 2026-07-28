@@ -312,7 +312,7 @@ export default function PostCard({ post }) {
                   href={src}
                   download
                   onClick={(e) => e.stopPropagation()}
-                  className="flex items-center justify-between p-3.5 border border-stone-200/80 rounded-xl bg-[#FAFAF9]/40 hover:bg-stone-50/50 hover:border-stone-300 transition-all text-xs font-semibold text-stone-700"
+                  className="flex items-center justify-between p-3.5 border border-stone-200/80 rounded-xl bg-stone-50/40 hover:bg-stone-50/50 hover:border-stone-300 transition-all text-xs font-semibold text-stone-700"
                 >
                   <div className="flex items-center gap-2.5 truncate">
                     <FileText size={16} className="text-primary-650 flex-shrink-0" />

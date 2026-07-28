@@ -25,7 +25,7 @@ const steps = [
 
 export default function JourneySteps() {
   return (
-    <section id="how-it-works" className="bg-[#FAFAF9] py-24 md:py-28 px-6 w-full">
+    <section id="how-it-works" className="bg-stone-50 py-24 md:py-28 px-6 w-full">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10">
         <motion.div
           variants={fadeUp}
