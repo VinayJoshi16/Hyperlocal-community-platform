@@ -189,4 +189,14 @@
     -webkit-box-orient: vertical;
     overflow: hidden;
   }
+
+  /* ─── Dynamic Palette Overrides ─── */
+  .text-\[\#1C1917\] { color: #0F172A !important; }
+  .text-\[\#44403C\] { color: #1E293B !important; }
+  .text-\[\#78716C\] { color: #64748B !important; }
+  .bg-\[\#FAFAF9\] { background-color: #F5F8FF !important; }
+  .bg-\[\#FAFAF9\]\/90 { background-color: rgba(245, 248, 255, 0.9) !important; }
+  .bg-\[\#FAFAF9\]\/40 { background-color: rgba(245, 248, 255, 0.4) !important; }
+  .border-\[\#E7E5E4\] { border-color: #E2E8F0 !important; }
+  .border-\[\#E7E5E4\]\/80 { border-color: rgba(226, 232, 240, 0.8) !important; }
 }

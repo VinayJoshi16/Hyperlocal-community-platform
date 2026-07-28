@@ -38,7 +38,7 @@ export default function AppShell() {
       <div className="flex flex-1 min-h-0 w-full px-4 sm:px-6 lg:px-8 xl:px-10 gap-6 sm:gap-8 pt-6 pb-6 lg:pb-4 lg:overflow-hidden">
 
         {/* Left sidebar - desktop only */}
-        <aside className="hidden lg:flex lg:w-[260px] xl:w-[280px] flex-shrink-0 min-h-0 overflow-y-auto overscroll-contain scrollbar-hide">
+        <aside className="hidden lg:flex lg:w-[260px] xl:w-[280px] flex-shrink-0 bg-white border border-stone-200/90 rounded-3xl p-5 shadow-[0_1px_3px_rgba(0,0,0,0.02)] h-fit overflow-y-auto overscroll-contain scrollbar-hide">
           <Sidebar />
         </aside>
 

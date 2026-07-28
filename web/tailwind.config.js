@@ -8,9 +8,21 @@ export default {
       colors: {
         primary: colors.blue,
         stone: {
-          50:  '#F4F3F0',  // warm linen page background
-          100: '#ECEBE6',  // deeper accent background
-          // warm neutrals, not cold grey
+          50:  '#F5F8FF',  // App Background
+          100: '#EDF4FF',  // Gradient Accent / Hover Surface
+          150: '#E2E8F0',  // Border
+          200: '#E2E8F0',  // Border
+          250: '#CBD5E1',  // slate-300
+          300: '#CBD5E1',  // slate-300
+          400: '#94A3B8',  // Placeholder / slate-400
+          500: '#64748B',  // Secondary Text / slate-500
+          600: '#475569',
+          700: '#334155',
+          755: '#1E293B',
+          800: '#1E293B',
+          850: '#131C2E',
+          900: '#0F172A',  // Primary Text
+          950: '#020617',
         },
         amber: colors.amber,
       },
