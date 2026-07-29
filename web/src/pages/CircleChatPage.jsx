@@ -914,7 +914,7 @@ export default function CircleChatPage() {
               />
               <button
                 type="submit"
-                className="w-full h-8 bg-stone-850 hover:bg-black text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
+                className="w-full h-8 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-1"
               >
                 Schedule Event
               </button>
@@ -1054,7 +1054,7 @@ export default function CircleChatPage() {
               </div>
               <button
                 type="submit"
-                className="w-full h-8 bg-stone-850 hover:bg-black text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center"
+                className="w-full h-8 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center"
               >
                 Post Poll
               </button>
@@ -1238,7 +1238,7 @@ export default function CircleChatPage() {
                       />
                       <button 
                         onClick={handleUpdateName}
-                        className="px-3 bg-stone-850 hover:bg-black text-white text-xs font-bold rounded-xl"
+                        className="px-3 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl"
                       >
                         Save
                       </button>
@@ -1283,7 +1283,7 @@ export default function CircleChatPage() {
                       <div className="flex gap-2 justify-end">
                         <button 
                           onClick={handleUpdateDesc}
-                          className="px-3 py-1.5 bg-stone-850 hover:bg-black text-white text-xs font-bold rounded-xl"
+                          className="px-3 py-1.5 bg-[#2563EB] hover:bg-[#1D4ED8] text-white text-xs font-bold rounded-xl"
                         >
                           Save
                         </button>
