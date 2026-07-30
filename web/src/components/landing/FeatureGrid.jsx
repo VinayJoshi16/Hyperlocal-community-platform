@@ -1,3 +1,4 @@
+import { useState, useEffect, useRef } from 'react'
 import { motion } from 'framer-motion'
 import { MapPin, ShieldCheck, Calendar, Store } from 'lucide-react'
 import { fadeUp, fadeUpSmall, stagger, viewportOnce } from './motionPresets'
@@ -35,6 +36,33 @@ const features = [
 ]
 
 export default function FeatureGrid() {
+  const containerRef = useRef(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [isHovered, setIsHovered] = useState(false)
+
+  // Autoplay 2-second horizontal scroll
+  useEffect(() => {
+    if (isHovered) return
+
+    const interval = setInterval(() => {
+      const nextIndex = (activeIndex + 1) % features.length
+      setActiveIndex(nextIndex)
+
+      if (containerRef.current) {
+        const container = containerRef.current
+        const card = container.children[nextIndex]
+        if (card) {
+          container.scrollTo({
+            left: card.offsetLeft - container.offsetLeft - 16,
+            behavior: 'smooth'
+          })
+        }
+      }
+    }, 2000)
+
+    return () => clearInterval(interval)
+  }, [activeIndex, isHovered])
+
   return (
     <section className="bg-white py-24 md:py-28 px-6 border-y border-[#E7E5E4] w-full">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10">
@@ -57,19 +85,31 @@ export default function FeatureGrid() {
         </motion.div>
 
         <motion.div
-          variants={stagger(0.1)}
+          ref={containerRef}
+          variants={stagger(0.12)}
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+          className="flex flex-row overflow-x-auto gap-6 pb-6 scrollbar-hide snap-x snap-mandatory scroll-smooth w-full px-2"
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => setIsHovered(false)}
         >
-          {features.map((f) => (
+          {features.map((f, idx) => (
             <motion.div
               key={f.title}
-              variants={fadeUpSmall}
-              whileHover={{ y: -6 }}
-              transition={{ type: 'spring', stiffness: 300, damping: 22 }}
-              className={`p-6 border border-[#E7E5E4] rounded-2xl bg-stone-50 flex flex-col justify-between text-left min-h-[190px] shadow-sm hover:shadow-[0_16px_32px_-12px_rgba(28,25,23,0.12)] hover:border-stone-300 transition-shadow duration-300 ${
+              variants={{
+                hidden: { opacity: 0, x: 40 },
+                show: { 
+                  opacity: 1, 
+                  x: 0, 
+                  transition: { type: 'spring', stiffness: 120, damping: 18 } 
+                }
+              }}
+              whileHover={{ 
+                y: -6,
+                boxShadow: '0 20px 40px -15px rgba(28,25,23,0.08)'
+              }}
+              className={`flex-shrink-0 w-[290px] sm:w-[325px] snap-start p-6 border border-[#E7E5E4] rounded-2xl bg-stone-50 flex flex-col justify-between text-left min-h-[190px] shadow-sm hover:border-stone-300 transition-all duration-300 ${
                 f.accent ? 'border-l-2 border-l-[#F59E0B]' : ''
               }`}
             >
