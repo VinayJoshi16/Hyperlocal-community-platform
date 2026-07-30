@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { MapPin, ShieldCheck, Calendar, Store, Sparkles } from 'lucide-react'
+import { MapPin, ShieldCheck, Calendar, Store, Users, Sparkles } from 'lucide-react'
 import { fadeUp, viewportOnce } from './motionPresets'
 
 const features = [
@@ -27,6 +27,14 @@ const features = [
     title: 'Society Events',
     body: 'Organize residential clean-up drives, local meetups, and maintain clean attendee rosters in real-time.',
     activeStyle: 'border-emerald-300/80 shadow-[0_15px_30px_rgba(16,185,129,0.08)] bg-white'
+  },
+  {
+    icon: Users,
+    tone: 'text-violet-600',
+    tile: 'bg-violet-50 border-violet-100',
+    title: 'Community Circles',
+    body: 'Create private or public interest groups with verified neighbors to coordinate hobbies, share advice, and chat.',
+    activeStyle: 'border-violet-300/80 shadow-[0_15px_30px_rgba(139,92,246,0.08)] bg-white'
   },
   {
     icon: Store,
