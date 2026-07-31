@@ -21,6 +21,18 @@ export default function AppShell() {
     dispatch(closeSidebar())
   }, [location.pathname, dispatch])
 
+  // Lock body scroll when mobile sidebar is open to prevent background scrolling
+  useEffect(() => {
+    if (sidebarOpen) {
+      document.body.classList.add('overflow-hidden')
+    } else {
+      document.body.classList.remove('overflow-hidden')
+    }
+    return () => {
+      document.body.classList.remove('overflow-hidden')
+    }
+  }, [sidebarOpen])
+
   return (
     <div className="min-h-screen lg:h-screen lg:overflow-hidden bg-transparent flex flex-col">
 
@@ -50,14 +62,14 @@ export default function AppShell() {
               onClick={() => dispatch(closeSidebar())}
             />
             <div className="fixed top-0 left-0 h-full w-64 bg-white z-40 shadow-modal
-                            lg:hidden flex flex-col pt-16 px-4 animate-slideUp">
+                            lg:hidden flex flex-col pt-16 px-4 overflow-y-auto overscroll-contain scrollbar-hide animate-slideUp">
               <Sidebar />
             </div>
           </>
         )}
 
-        {/* Pages render here */}
-        <main className="flex-1 min-w-0 min-h-0 lg:overflow-hidden overflow-y-auto overscroll-contain scrollbar-hide flex flex-col">
+        {/* Pages render here - scrolls natively at document level on mobile, internal scroll on desktop */}
+        <main className="flex-1 min-w-0 min-h-0 lg:overflow-hidden lg:overflow-y-auto lg:overscroll-contain overflow-y-visible flex flex-col">
           <Outlet />
         </main>
 
