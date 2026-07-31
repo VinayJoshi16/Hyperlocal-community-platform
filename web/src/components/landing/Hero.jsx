@@ -4,7 +4,7 @@ import { motion } from 'framer-motion'
 import { MapPin, ArrowRight, ShieldCheck } from 'lucide-react'
 import { selectIsAuthenticated } from '../../redux/slices/authSlice'
 import SocietyFacade from './SocietyFacade'
-import { stagger, fadeUp } from './motionPresets'
+import { stagger, textHeading, textParagraph, revealButton, revealImage, fadeUpSmall } from './motionPresets'
 
 export default function Hero() {
   const navigate = useNavigate()
@@ -25,7 +25,7 @@ export default function Hero() {
       />
 
       <motion.div
-        variants={stagger(0.12, 0.05)}
+        variants={stagger(0.1, 0.1)}
         initial="hidden"
         animate="show"
         className="relative max-w-[1440px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-14 lg:gap-16 items-center"
@@ -33,7 +33,7 @@ export default function Hero() {
         {/* Left: pitch */}
         <div className="lg:col-span-7 space-y-7 text-left">
           <motion.div
-            variants={fadeUp}
+            variants={fadeUpSmall}
             className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white border border-[#E7E5E4] text-[10px] font-bold text-[#78716C] uppercase tracking-widest select-none shadow-sm"
           >
             <MapPin size={11} className="text-[#2563EB]" />
@@ -41,7 +41,7 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1
-            variants={fadeUp}
+            variants={textHeading}
             className="text-[42px] sm:text-[52px] md:text-[60px] font-extrabold tracking-[-0.02em] text-[#1C1917] leading-[1.04] max-w-2xl"
           >
             The block you live on,
@@ -52,7 +52,7 @@ export default function Hero() {
           </motion.h1>
 
           <motion.p
-            variants={fadeUp}
+            variants={textParagraph}
             className="text-[16px] md:text-[17px] text-[#78716C] leading-relaxed max-w-xl font-medium"
           >
             NeighbourHub is a private, verified feed for one address at a time —
@@ -60,7 +60,7 @@ export default function Hero() {
             emergency alert that never gets lost in a crowded app.
           </motion.p>
 
-          <motion.div variants={fadeUp} className="pt-2 flex flex-wrap items-center gap-3.5">
+          <motion.div variants={revealButton} className="pt-2 flex flex-wrap items-center gap-3.5">
             {isAuthenticated ? (
               <motion.button
                 whileHover={{ y: -2 }}
@@ -93,7 +93,7 @@ export default function Hero() {
           </motion.div>
 
           <motion.div
-            variants={fadeUp}
+            variants={fadeUpSmall}
             className="flex items-center gap-2 text-[12px] text-[#78716C] font-semibold pt-2"
           >
             <ShieldCheck size={14} className="text-emerald-600" />
@@ -103,7 +103,7 @@ export default function Hero() {
 
         {/* Right: signature visual */}
         <motion.div
-          variants={fadeUp}
+          variants={revealImage}
           className="lg:col-span-5 flex items-center justify-center"
         >
           <SocietyFacade />

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Heart, MessageSquare } from 'lucide-react'
-import { fadeUp, viewportOnce } from './motionPresets'
+import { fadeUp, viewportOnce, stagger, fadeUpSmall, textHeading, textParagraph, revealImage } from './motionPresets'
 
 const tabs = [
   {
@@ -140,24 +140,24 @@ export default function LiveFeedShowcase() {
     <section id="inside" className="bg-stone-50 py-24 md:py-28 px-6 w-full">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10 grid grid-cols-1 lg:grid-cols-12 gap-14 items-center">
         <motion.div
-          variants={fadeUp}
+          variants={stagger(0.08)}
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}
           className="lg:col-span-5 text-left"
         >
-          <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest">
+          <motion.span variants={fadeUpSmall} className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest block">
             Inside the feed
-          </span>
-          <h2 className="mt-3 text-3xl md:text-[34px] font-extrabold text-[#1C1917] tracking-tight max-w-md">
+          </motion.span>
+          <motion.h2 variants={textHeading} className="mt-3 text-3xl md:text-[34px] font-extrabold text-[#1C1917] tracking-tight max-w-md">
             One feed, three kinds of neighbor
-          </h2>
-          <p className="mt-4 text-[15px] text-[#78716C] leading-relaxed font-medium max-w-md">
+          </motion.h2>
+          <motion.p variants={textParagraph} className="mt-4 text-[15px] text-[#78716C] leading-relaxed font-medium max-w-md">
             The RWA, the corner bakery, and the person two floors up all post to the same place —
             scoped, verified, and sorted by what actually matters to your address.
-          </p>
+          </motion.p>
 
-          <div className="mt-8 flex flex-wrap gap-2.5">
+          <motion.div variants={fadeUpSmall} className="mt-8 flex flex-wrap gap-2.5">
             {tabs.map((tab) => (
               <button
                 key={tab.key}
@@ -172,11 +172,11 @@ export default function LiveFeedShowcase() {
                 {tab.label}
               </button>
             ))}
-          </div>
+          </motion.div>
         </motion.div>
 
         <motion.div
-          variants={fadeUp}
+          variants={revealImage}
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}

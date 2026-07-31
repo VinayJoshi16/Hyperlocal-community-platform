@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Heart, MessageSquare, Share2, Play, Volume2, ShieldCheck, PawPrint } from 'lucide-react'
-import { fadeUpSmall, stagger, viewportOnce } from './motionPresets'
+import { fadeUpSmall, stagger, viewportOnce, textHeading, textParagraph } from './motionPresets'
 
 function Avatar({ seed, size = 36 }) {
   return (
@@ -264,22 +264,22 @@ export default function SocialFeedShowcase() {
     <section className="bg-white py-24 md:py-28 px-6 border-y border-[#E7E5E4] w-full">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10">
         <motion.div
-          variants={fadeUpSmall}
+          variants={stagger(0.08)}
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}
-          className="max-w-xl mb-16"
+          className="max-w-xl mb-16 text-left"
         >
-          <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest">
+          <motion.span variants={fadeUpSmall} className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest block">
             See it in action
-          </span>
-          <h2 className="mt-3 text-3xl md:text-[34px] font-extrabold text-[#1C1917] tracking-tight">
+          </motion.span>
+          <motion.h2 variants={textHeading} className="mt-3 text-3xl md:text-[34px] font-extrabold text-[#1C1917] tracking-tight">
             Photos, video, and everything in between
-          </h2>
-          <p className="mt-3 text-[15px] text-[#78716C] leading-relaxed font-medium max-w-lg">
+          </motion.h2>
+          <motion.p variants={textParagraph} className="mt-3 text-[15px] text-[#78716C] leading-relaxed font-medium max-w-lg">
             Every post type your neighbors actually use — real photos, short video, multi-image
             albums — with the same feed mechanics as a modern social app.
-          </p>
+          </motion.p>
         </motion.div>
 
         <motion.div

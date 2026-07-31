@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import { ArrowRight, Sparkles } from 'lucide-react'
 import { selectIsAuthenticated } from '../../redux/slices/authSlice'
-import { fadeUp, viewportOnce } from './motionPresets'
+import { fadeUp, viewportOnce, stagger, fadeUpSmall, textHeading, textParagraph, revealButton } from './motionPresets'
 
 const avatars = [
   { initials: 'VJ', bg: 'bg-[#2563EB] text-white' },
@@ -21,7 +21,7 @@ export default function CTASection() {
     <section className="relative bg-stone-50 py-20 px-6 w-full overflow-hidden">
       <div className="max-w-[1200px] mx-auto">
         <motion.div
-          variants={fadeUp}
+          variants={stagger(0.1, 0.05)}
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}
@@ -33,14 +33,14 @@ export default function CTASection() {
 
           <div className="relative max-w-2xl mx-auto space-y-8 flex flex-col items-center">
             {/* Resident Avatars Group */}
-            <div className="flex flex-col items-center gap-3">
+            <motion.div variants={fadeUpSmall} className="flex flex-col items-center gap-3">
               <div className="flex -space-x-2.5">
                 {avatars.map((av, idx) => (
                   <motion.div 
                     key={idx}
                     initial={{ opacity: 0, scale: 0.8 }}
                     whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ delay: idx * 0.1 }}
+                    transition={{ delay: idx * 0.06 }}
                     viewport={viewportOnce}
                     className={`w-9 h-9 rounded-full ${av.bg} border-2 border-[#1C1917] flex items-center justify-center text-[10px] font-extrabold shadow-md`}
                   >
@@ -52,22 +52,22 @@ export default function CTASection() {
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                 Join 400+ residents online
               </span>
-            </div>
+            </motion.div>
 
             {/* Content Header */}
             <div className="space-y-4">
-              <h2 className="text-3xl sm:text-4xl md:text-[44px] font-black text-white tracking-tight leading-[1.1] bg-gradient-to-r from-white via-stone-100 to-stone-300 bg-clip-text text-transparent">
+              <motion.h2 variants={textHeading} className="text-3xl sm:text-4xl md:text-[44px] font-black text-white tracking-tight leading-[1.1] bg-gradient-to-r from-white via-stone-100 to-stone-300 bg-clip-text text-transparent">
                 Your neighbors are already
                 <br />
                 <span className="text-[#3B82F6]">on the other side.</span>
-              </h2>
-              <p className="text-[14px] text-stone-400 leading-relaxed max-w-md mx-auto font-semibold">
+              </motion.h2>
+              <motion.p variants={textParagraph} className="text-[14px] text-stone-400 leading-relaxed max-w-md mx-auto font-semibold">
                 Sign up takes less than two minutes. Enter your society location, verify your email, and instantly connect to your local feed.
-              </p>
+              </motion.p>
             </div>
 
             {/* Action Button */}
-            <div className="pt-2">
+            <motion.div variants={revealButton} className="pt-2">
               {isAuthenticated ? (
                 <motion.button
                   whileHover={{ scale: 1.03, y: -2 }}
@@ -93,7 +93,7 @@ export default function CTASection() {
                   </Link>
                 </motion.div>
               )}
-            </div>
+            </motion.div>
           </div>
         </motion.div>
       </div>

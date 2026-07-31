@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { fadeUp, fadeUpSmall, stagger, viewportOnce } from './motionPresets'
+import { fadeUp, fadeUpSmall, stagger, viewportOnce, textHeading } from './motionPresets'
 
 const quotes = [
   {
@@ -30,18 +30,18 @@ export default function Testimonials() {
     <section id="stories" className="bg-white py-24 md:py-28 px-6 border-y border-[#E7E5E4] w-full">
       <div className="max-w-[1440px] mx-auto px-6 lg:px-10">
         <motion.div
-          variants={fadeUp}
+          variants={stagger(0.08)}
           initial="hidden"
           whileInView="show"
           viewport={viewportOnce}
-          className="max-w-xl mb-16"
+          className="max-w-xl mb-16 text-left"
         >
-          <span className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest">
+          <motion.span variants={fadeUpSmall} className="text-[10px] font-bold text-[#2563EB] uppercase tracking-widest block">
             From the neighborhood
-          </span>
-          <h2 className="mt-3 text-3xl md:text-[34px] font-extrabold text-[#1C1917] tracking-tight">
+          </motion.span>
+          <motion.h2 variants={textHeading} className="mt-3 text-3xl md:text-[34px] font-extrabold text-[#1C1917] tracking-tight">
             What actually changes on the ground
-          </h2>
+          </motion.h2>
         </motion.div>
 
         <motion.div
