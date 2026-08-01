@@ -62,3 +62,4 @@ NeighbourHub is a secure, real-time hyperlocal communication platform that conne
     │   └── App.jsx          # Route layout mapping
     ├── vercel.json          # SPA routing config for Vercel
     └── package.json
+
