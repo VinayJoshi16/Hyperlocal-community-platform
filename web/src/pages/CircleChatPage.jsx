@@ -56,6 +56,10 @@ export default function CircleChatPage() {
   const [editedDesc, setEditedDesc] = useState('')
   const [isUploadingImage, setIsUploadingImage] = useState(false)
 
+  // Notification Seen counts for Events, Pins, and Polls
+  const [lastSeenCounts, setLastSeenCounts] = useState({ events: 0, pins: 0, polls: 0 })
+  const [hasInitializedSeen, setHasInitializedSeen] = useState(false)
+
   // Sidebar Modals / Forms States
   const [pinInput, setPinInput] = useState('')
   const [pollQuestion, setPollQuestion] = useState('')
@@ -93,6 +97,39 @@ export default function CircleChatPage() {
     scrollToBottom()
     markAllMessagesViewed()
   }, [messages])
+
+  // Initialize lastSeenCounts from localStorage when circle details load
+  useEffect(() => {
+    if (id && !hasInitializedSeen && (events.length > 0 || pins.length > 0 || polls.length > 0)) {
+      const stored = localStorage.getItem(`nh_circle_seen_${id}`)
+      if (stored) {
+        try {
+          setLastSeenCounts(JSON.parse(stored))
+        } catch (e) {
+          console.error('Failed to parse last seen counts:', e)
+        }
+      } else {
+        const initial = { events: events.length, pins: pins.length, polls: polls.length }
+        setLastSeenCounts(initial)
+        localStorage.setItem(`nh_circle_seen_${id}`, JSON.stringify(initial))
+      }
+      setHasInitializedSeen(true)
+    }
+  }, [id, events.length, pins.length, polls.length, hasInitializedSeen])
+
+  // Reset/mark as seen when info drawer is opened
+  useEffect(() => {
+    if (isInfoOpen && id) {
+      const current = { events: events.length, pins: pins.length, polls: polls.length }
+      setLastSeenCounts(current)
+      localStorage.setItem(`nh_circle_seen_${id}`, JSON.stringify(current))
+    }
+  }, [isInfoOpen, id, events.length, pins.length, polls.length])
+
+  const hasUnseenCollaboration = 
+    (events.length > lastSeenCounts.events) || 
+    (pins.length > lastSeenCounts.pins) || 
+    (polls.length > lastSeenCounts.polls)
 
   function scrollToBottom() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -321,6 +358,9 @@ export default function CircleChatPage() {
       await circlesAPI.addPin(id, pinInput.trim())
       setPinInput('')
       toast.success('Notice pinned!')
+      const updatedCounts = { ...lastSeenCounts, pins: pins.length + 1 }
+      setLastSeenCounts(updatedCounts)
+      localStorage.setItem(`nh_circle_seen_${id}`, JSON.stringify(updatedCounts))
     } catch (err) {
       toast.error('Failed to pin notice')
     }
@@ -349,6 +389,9 @@ export default function CircleChatPage() {
       setPollQuestion('')
       setPollOptions(['', ''])
       toast.success('Quick Poll created!')
+      const updatedCounts = { ...lastSeenCounts, polls: polls.length + 1 }
+      setLastSeenCounts(updatedCounts)
+      localStorage.setItem(`nh_circle_seen_${id}`, JSON.stringify(updatedCounts))
     } catch (err) {
       toast.error('Failed to create poll')
     }
@@ -384,6 +427,9 @@ export default function CircleChatPage() {
       })
       setEventForm({ title: '', description: '', date: '', time: '', location: '' })
       toast.success('Event scheduled!')
+      const updatedCounts = { ...lastSeenCounts, events: events.length + 1 }
+      setLastSeenCounts(updatedCounts)
+      localStorage.setItem(`nh_circle_seen_${id}`, JSON.stringify(updatedCounts))
     } catch (err) {
       toast.error('Failed to schedule event')
     }
@@ -669,11 +715,21 @@ export default function CircleChatPage() {
 
           <button
             onClick={() => setIsInfoOpen(true)}
-            className="p-2 hover:bg-stone-50 rounded-xl transition-colors text-stone-500 hover:text-stone-850 flex items-center gap-1.5 text-xs font-bold"
+            className={`p-2 hover:bg-stone-55 rounded-xl transition-all flex items-center gap-1.5 text-xs font-bold ${
+              hasUnseenCollaboration 
+                ? 'text-red-500 hover:text-red-650 bg-red-50/50 hover:bg-red-50 animate-pulse border border-red-150 shadow-[0_0_8px_rgba(239,68,68,0.15)]' 
+                : 'text-stone-500 hover:text-stone-850'
+            }`}
             title="Circle Info & Settings"
           >
-            <Info size={16} />
+            <Info size={16} className={hasUnseenCollaboration ? 'text-red-500' : ''} />
             Info
+            {hasUnseenCollaboration && (
+              <span className="relative flex h-1.5 w-1.5 ml-0.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-red-500"></span>
+              </span>
+            )}
           </button>
         </div>
 
