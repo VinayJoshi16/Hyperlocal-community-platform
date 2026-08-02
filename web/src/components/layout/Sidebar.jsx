@@ -115,15 +115,15 @@ export default function Sidebar() {
                 const isActive = activeLocation?.id === loc.id
                 return (
                   <li key={loc.id}>
-                    <button className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl
+                    <button className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl min-w-0
                                         text-sm transition-all duration-150 text-left
                                         ${isActive
                                           ? 'bg-stone-100 text-stone-800 font-bold'
-                                          : 'text-stone-550 hover:bg-stone-50 hover:text-stone-750'
+                                          : 'text-stone-555 hover:bg-stone-50 hover:text-stone-750'
                                         }`}>
-                      <MapPin size={15} className={isActive ? 'text-primary-500' : 'text-stone-350'} />
-                      <span className="truncate">{loc.name}</span>
-                      <span className="ml-auto text-[9px] font-bold tracking-wide text-stone-400 uppercase flex-shrink-0">
+                      <MapPin size={15} className={`flex-shrink-0 ${isActive ? 'text-primary-500' : 'text-stone-355'}`} />
+                      <span className="truncate flex-1 min-w-0">{loc.name}</span>
+                      <span className="text-[9px] font-bold tracking-wide text-stone-400 uppercase flex-shrink-0 ml-2">
                         {loc.type}
                       </span>
                     </button>
