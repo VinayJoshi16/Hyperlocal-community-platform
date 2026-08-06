@@ -40,6 +40,7 @@ app.use(
         config.clientUrl,
         'http://localhost:3000',
         'http://localhost:5173',
+        'http://localhost:3001',
       ];
       
       const normalizedAllowed = allowedOrigins.map(url => url ? url.replace(/\/$/, '') : '');
@@ -111,6 +112,8 @@ app.use('/api/location', locationRoutes);
 app.use('/api/posts', postRoutes);
 app.use('/api/circles', circleRoutes);
 app.use('/api/notifications', notificationRoutes);
+const adminRoutes = require('./src/routes/adminRoutes');
+app.use('/api/admin', adminRoutes);
 
 // ─── 404 handler (after all routes) ──────────────────────────────────────────
 app.use(notFoundMiddleware);

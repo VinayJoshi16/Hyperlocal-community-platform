@@ -33,6 +33,11 @@ const sendOtp = asyncHandler(async (req, res) => {
 const verifyOtp = asyncHandler(async (req, res) => {
   const { email, code, name } = verifyOtpSchema.parse(req.body);
   const { user, isNewUser } = await otpService.verifyOtp(email, code, name);
+  
+  if (user && user.is_blocked) {
+    return fail(res, 'Your account has been blocked by an administrator.', 403);
+  }
+
   const { accessToken, refreshToken } = await tokenService.issueTokenPair(user);
 
   return ok(
@@ -67,6 +72,10 @@ const refresh = asyncHandler(async (req, res) => {
   const user = await userModel.findById(decoded.sub);
   if (!user) {
     return fail(res, 'User not found.', 404);
+  }
+  
+  if (user.is_blocked) {
+    return fail(res, 'Your account has been blocked by an administrator.', 403);
   }
 
   // Rotate: revoke the old refresh token and issue a fresh pair
@@ -208,6 +217,10 @@ const login = asyncHandler(async (req, res) => {
   const user = await userModel.findByEmail(email);
   if (!user) {
     return fail(res, 'Invalid email or password.', 401);
+  }
+
+  if (user.is_blocked) {
+    return fail(res, 'Your account has been blocked by an administrator.', 403);
   }
 
   if (!user.is_verified) {
