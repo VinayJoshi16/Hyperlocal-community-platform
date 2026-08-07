@@ -39,19 +39,22 @@ app.use(
       const allowedOrigins = [
         config.clientUrl,
         config.adminClientUrl,
+        'https://hyperlocal-admin-panel.vercel.app',
         'http://localhost:3000',
         'http://localhost:5173',
         'http://localhost:3001',
       ];
       
-      const normalizedAllowed = allowedOrigins.map(url => url ? url.replace(/\/$/, '') : '');
+      const normalizedAllowed = allowedOrigins
+        .filter(Boolean)
+        .map(url => url.replace(/\/$/, ''));
       const normalizedOrigin = origin.replace(/\/$/, '');
       
-      if (normalizedAllowed.includes(normalizedOrigin)) {
+      if (normalizedAllowed.includes(normalizedOrigin) || normalizedOrigin.endsWith('.vercel.app')) {
         callback(null, true);
       } else {
         console.warn(`[CORS Blocked] Origin: ${origin}`);
-        callback(new Error('Not allowed by CORS'));
+        callback(null, false);
       }
     },
     credentials: true,
