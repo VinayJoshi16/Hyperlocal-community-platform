@@ -7,7 +7,9 @@ const {
   getUsers,
   toggleBlockUser,
   getPosts,
-  moderatePost
+  moderatePost,
+  getLocations,
+  createAdminPost
 } = require('../controllers/adminController');
 
 // All routes here require the user to be logged in and be the master admin
@@ -20,6 +22,9 @@ router.get('/users', getUsers);
 router.patch('/users/:id/block', toggleBlockUser);
 
 router.get('/posts', getPosts);
+router.post('/posts', createAdminPost);
 router.patch('/posts/:id/moderate', moderatePost);
+
+router.get('/locations', getLocations);
 
 module.exports = router;

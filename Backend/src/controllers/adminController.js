@@ -150,10 +150,40 @@ const moderatePost = asyncHandler(async (req, res) => {
   }
 });
 
+// GET /api/admin/locations
+const getLocations = asyncHandler(async (req, res) => {
+  const result = await query('SELECT id, name, type FROM locations ORDER BY name ASC');
+  return ok(res, { locations: result.rows });
+});
+
+// POST /api/admin/posts
+const createAdminPost = asyncHandler(async (req, res) => {
+  const { title, body, type = 'notice', locationId } = req.body;
+  if (!body || !body.trim()) return fail(res, 'Post body is required', 400);
+
+  let targetLocId = locationId;
+  if (!targetLocId) {
+    const locRes = await query('SELECT id FROM locations LIMIT 1');
+    if (locRes.rows.length === 0) return fail(res, 'No location found on platform', 400);
+    targetLocId = locRes.rows[0].id;
+  }
+
+  const insertRes = await query(
+    `INSERT INTO posts (author_id, location_id, type, title, body, is_held_for_review)
+     VALUES ($1, $2, $3, $4, $5, false)
+     RETURNING *`,
+    [req.user.id, targetLocId, type, title ? title.trim() : null, body.trim()]
+  );
+
+  return ok(res, { post: insertRes.rows[0] }, 201);
+});
+
 module.exports = {
   getDashboardStats,
   getUsers,
   toggleBlockUser,
   getPosts,
-  moderatePost
+  moderatePost,
+  getLocations,
+  createAdminPost
 };
