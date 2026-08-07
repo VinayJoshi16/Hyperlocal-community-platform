@@ -38,6 +38,7 @@ app.use(
       
       const allowedOrigins = [
         config.clientUrl,
+        config.adminClientUrl,
         'http://localhost:3000',
         'http://localhost:5173',
         'http://localhost:3001',
