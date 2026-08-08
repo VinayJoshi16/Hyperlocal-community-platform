@@ -31,33 +31,35 @@ app.use(
   })
 );
 
-// Explicit CORS Headers & Preflight Short-circuit Middleware
-app.use((req, res, next) => {
-  const origin = req.headers.origin;
-  if (origin) {
-    res.setHeader('Access-Control-Allow-Origin', origin);
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
-  } else {
-    res.setHeader('Access-Control-Allow-Origin', '*');
-  }
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Active-Location-Id');
+// Production-ready CORS configuration
+const allowedOrigins = [
+  config.clientUrl,
+  config.adminClientUrl,
+  'https://hyperlocal-admin-panel.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3001',
+  'http://localhost:3000',
+].filter(Boolean).map((url) => url.replace(/\/$/, ''));
 
-  if (req.method === 'OPTIONS') {
-    return res.status(200).end();
-  }
-  next();
-});
-
-// Global CORS configuration
 const corsOptions = {
-  origin: true,
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+
+    const normalizedOrigin = origin.replace(/\/$/, '');
+    if (allowedOrigins.includes(normalizedOrigin) || normalizedOrigin.endsWith('.vercel.app')) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Active-Location-Id'],
   optionsSuccessStatus: 200,
 };
+
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 
 // ─── Request parsing ──────────────────────────────────────────────────────────
 app.use(express.json({ limit: '2mb' }));
