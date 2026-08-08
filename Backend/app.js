@@ -31,7 +31,25 @@ app.use(
   })
 );
 
-// Global CORS configuration & Preflight Options handling
+// Explicit CORS Headers & Preflight Short-circuit Middleware
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Active-Location-Id');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
+
+// Global CORS configuration
 const corsOptions = {
   origin: true,
   credentials: true,
@@ -39,9 +57,7 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Active-Location-Id'],
   optionsSuccessStatus: 200,
 };
-
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 // ─── Request parsing ──────────────────────────────────────────────────────────
 app.use(express.json({ limit: '2mb' }));
@@ -56,6 +72,7 @@ if (config.nodeEnv === 'development') {
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
+  skip: (req) => req.method === 'OPTIONS',
   standardHeaders: true,
   legacyHeaders: false,
   message: {

@@ -26,6 +26,7 @@ const { authMiddleware } = require('../middleware/authMiddleware');
 const otpLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 5,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many OTP requests from this device. Please wait 15 minutes.',
@@ -38,6 +39,7 @@ const otpLimiter = rateLimit({
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  skip: (req) => req.method === 'OPTIONS',
   message: {
     success: false,
     message: 'Too many requests. Please slow down.',

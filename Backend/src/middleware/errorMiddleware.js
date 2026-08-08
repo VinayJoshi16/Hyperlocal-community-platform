@@ -7,6 +7,12 @@ const { ZodError } = require('zod');
 const { OtpError } = require('../services/otpService');
 
 function errorMiddleware(err, req, res, next) {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+
   // Log every error in development for easier debugging
   if (process.env.NODE_ENV === 'development') {
     console.error('[Error]', err);
