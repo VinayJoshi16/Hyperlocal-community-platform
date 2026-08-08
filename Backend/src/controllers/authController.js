@@ -185,6 +185,24 @@ const register = asyncHandler(async (req, res) => {
   });
 });
 
+// Helper to safely ensure user has a primary location without failing authentication
+async function ensureUserHasLocation(userId) {
+  try {
+    const locationCheck = await query(
+      'SELECT 1 FROM user_locations WHERE user_id = $1 AND is_primary = true',
+      [userId]
+    );
+    if (locationCheck.rows.length === 0) {
+      const defaultLoc = await query('SELECT id FROM locations LIMIT 1');
+      if (defaultLoc.rows.length > 0) {
+        await linkUserToLocationHierarchy(userId, defaultLoc.rows[0].id);
+      }
+    }
+  } catch (err) {
+    console.warn('[Location Link Warning]', err.message);
+  }
+}
+
 // POST /api/auth/verify-registration
 // Verifies registration OTP and activates the user.
 const verifyRegistration = asyncHandler(async (req, res) => {
@@ -192,14 +210,7 @@ const verifyRegistration = asyncHandler(async (req, res) => {
   const { user } = await otpService.verifyOtp(email, code);
   const { accessToken, refreshToken } = await tokenService.issueTokenPair(user);
 
-  // Ensure the user has a primary location linked
-  const locationCheck = await query(
-    'SELECT 1 FROM user_locations WHERE user_id = $1 AND is_primary = true',
-    [user.id]
-  );
-  if (locationCheck.rows.length === 0) {
-    await linkUserToLocationHierarchy(user.id, '55555555-5555-5555-5555-555555555555');
-  }
+  await ensureUserHasLocation(user.id);
 
   return ok(res, {
     accessToken,
@@ -230,15 +241,7 @@ const login = asyncHandler(async (req, res) => {
   if (isDemo && password === '123456') {
     // Demo bypass: log in directly
     const { accessToken, refreshToken } = await tokenService.issueTokenPair(user);
-    
-    // Ensure the user has a primary location linked
-    const locationCheck = await query(
-      'SELECT 1 FROM user_locations WHERE user_id = $1 AND is_primary = true',
-      [user.id]
-    );
-    if (locationCheck.rows.length === 0) {
-      await linkUserToLocationHierarchy(user.id, '55555555-5555-5555-5555-555555555555');
-    }
+    await ensureUserHasLocation(user.id);
 
     return ok(res, {
       accessToken,
@@ -258,15 +261,7 @@ const login = asyncHandler(async (req, res) => {
   }
 
   const { accessToken, refreshToken } = await tokenService.issueTokenPair(user);
-
-  // Ensure the user has a primary location linked
-  const locationCheck = await query(
-    'SELECT 1 FROM user_locations WHERE user_id = $1 AND is_primary = true',
-    [user.id]
-  );
-  if (locationCheck.rows.length === 0) {
-    await linkUserToLocationHierarchy(user.id, '55555555-5555-5555-5555-555555555555');
-  }
+  await ensureUserHasLocation(user.id);
 
   return ok(res, {
     accessToken,
