@@ -17,32 +17,57 @@ const getDashboardStats = asyncHandler(async (req, res) => {
 });
 
 // GET /api/admin/users
-// Returns a list of all users
+// Returns a list of all users with location details and supports searching & location filtering
 const getUsers = asyncHandler(async (req, res) => {
-  const { page = 1, limit = 50, search = '' } = req.query;
+  const { page = 1, limit = 50, search = '', location = '', type = '' } = req.query;
   const offset = (page - 1) * limit;
 
-  let queryStr = 'SELECT id, email, name, role, is_verified, is_blocked, created_at FROM users';
+  let whereClauses = [];
   let queryParams = [];
 
-  if (search) {
-    queryStr += ' WHERE email ILIKE $1 OR name ILIKE $1';
-    queryParams.push(`%${search}%`);
+  if (search && search.trim()) {
+    queryParams.push(`%${search.trim()}%`);
+    whereClauses.push(`(u.email ILIKE $${queryParams.length} OR u.name ILIKE $${queryParams.length})`);
   }
 
-  queryStr += ` ORDER BY created_at DESC LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}`;
+  if (location && location.trim()) {
+    queryParams.push(`%${location.trim()}%`);
+    whereClauses.push(`EXISTS (
+      SELECT 1 FROM user_locations ul_filter
+      JOIN locations l_filter ON l_filter.id = ul_filter.location_id
+      WHERE ul_filter.user_id = u.id AND l_filter.name ILIKE $${queryParams.length}
+    )`);
+  }
+
+  if (type && type.trim() && type !== 'all') {
+    queryParams.push(type.trim());
+    whereClauses.push(`EXISTS (
+      SELECT 1 FROM user_locations ul_filter
+      JOIN locations l_filter ON l_filter.id = ul_filter.location_id
+      WHERE ul_filter.user_id = u.id AND l_filter.type = $${queryParams.length}
+    )`);
+  }
+
+  const whereStr = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
+
+  const queryStr = `
+    SELECT u.id, u.email, u.name, u.role, u.is_verified, u.is_blocked, u.created_at,
+           json_agg(DISTINCT jsonb_build_object('id', l.id, 'name', l.name, 'type', l.type, 'is_primary', ul.is_primary)) FILTER (WHERE l.id IS NOT NULL) as locations
+    FROM users u
+    LEFT JOIN user_locations ul ON ul.user_id = u.id
+    LEFT JOIN locations l ON l.id = ul.location_id
+    ${whereStr}
+    GROUP BY u.id
+    ORDER BY u.created_at DESC
+    LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
+  `;
+
   queryParams.push(limit, offset);
-
   const result = await query(queryStr, queryParams);
-  
-  // Count total for pagination
-  let countQueryStr = 'SELECT COUNT(*) FROM users';
-  let countParams = [];
-  if (search) {
-    countQueryStr += ' WHERE email ILIKE $1 OR name ILIKE $1';
-    countParams.push(`%${search}%`);
-  }
-  const countResult = await query(countQueryStr, countParams);
+
+  const countQueryParams = queryParams.slice(0, queryParams.length - 2);
+  const countQueryStr = `SELECT COUNT(DISTINCT u.id) FROM users u ${whereStr}`;
+  const countResult = await query(countQueryStr, countQueryParams);
 
   return ok(res, {
     users: result.rows,
