@@ -91,6 +91,7 @@ const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 1000,
   skip: (req) => req.method === 'OPTIONS',
+  validate: false,
   standardHeaders: true,
   legacyHeaders: false,
   message: {
