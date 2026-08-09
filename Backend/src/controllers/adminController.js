@@ -50,27 +50,53 @@ const getUsers = asyncHandler(async (req, res) => {
 
   const whereStr = whereClauses.length > 0 ? 'WHERE ' + whereClauses.join(' AND ') : '';
 
-  const queryStr = `
-    SELECT u.id, u.email, u.name, u.role, u.is_verified, u.is_blocked, u.created_at,
-           json_agg(DISTINCT jsonb_build_object('id', l.id, 'name', l.name, 'type', l.type, 'is_primary', ul.is_primary)) FILTER (WHERE l.id IS NOT NULL) as locations
+  // Get users
+  const usersQuery = `
+    SELECT u.id, u.email, u.name, u.role, u.is_verified, u.is_blocked, u.created_at
     FROM users u
-    LEFT JOIN user_locations ul ON ul.user_id = u.id
-    LEFT JOIN locations l ON l.id = ul.location_id
     ${whereStr}
-    GROUP BY u.id
     ORDER BY u.created_at DESC
     LIMIT $${queryParams.length + 1} OFFSET $${queryParams.length + 2}
   `;
+  const usersParams = [...queryParams, limit, offset];
+  const usersResult = await query(usersQuery, usersParams);
 
-  queryParams.push(limit, offset);
-  const result = await query(queryStr, queryParams);
+  // Get locations for these users in one batch query
+  const userIds = usersResult.rows.map((u) => u.id);
+  let locationsMap = {};
 
-  const countQueryParams = queryParams.slice(0, queryParams.length - 2);
-  const countQueryStr = `SELECT COUNT(DISTINCT u.id) FROM users u ${whereStr}`;
-  const countResult = await query(countQueryStr, countQueryParams);
+  if (userIds.length > 0) {
+    const locQuery = `
+      SELECT ul.user_id, ul.is_primary, l.id, l.name, l.type
+      FROM user_locations ul
+      JOIN locations l ON l.id = ul.location_id
+      WHERE ul.user_id = ANY($1)
+      ORDER BY ul.is_primary DESC, l.type ASC
+    `;
+    const locResult = await query(locQuery, [userIds]);
+    for (const row of locResult.rows) {
+      if (!locationsMap[row.user_id]) locationsMap[row.user_id] = [];
+      locationsMap[row.user_id].push({
+        id: row.id,
+        name: row.name,
+        type: row.type,
+        is_primary: row.is_primary,
+      });
+    }
+  }
+
+  // Attach locations to each user
+  const users = usersResult.rows.map((u) => ({
+    ...u,
+    locations: locationsMap[u.id] || null,
+  }));
+
+  // Count
+  const countQueryStr = `SELECT COUNT(*) FROM users u ${whereStr}`;
+  const countResult = await query(countQueryStr, queryParams);
 
   return ok(res, {
-    users: result.rows,
+    users,
     total: parseInt(countResult.rows[0].count, 10),
     page: parseInt(page, 10),
     limit: parseInt(limit, 10)
