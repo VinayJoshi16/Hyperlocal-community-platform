@@ -18,11 +18,29 @@ const circleRoutes = require('./src/routes/circleRoutes');
 const notificationRoutes = require('./src/routes/notificationRoutes');
 const { errorMiddleware, notFoundMiddleware } = require('./src/middleware/errorMiddleware');
 
+// ─── CORS preflight handler - MUST be BEFORE Helmet ─────────────────────────
+// Helmet modifies response headers which can strip CORS headers on OPTIONS.
+// This raw middleware intercepts OPTIONS before anything else.
+
 const app = express();
 
 // Trust reverse proxy headers (Render, Cloudflare, Vercel, Nginx, etc.)
-// Required for express-rate-limit to extract real client IP addresses.
 app.set('trust proxy', 1);
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+  }
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-Active-Location-Id');
+  res.setHeader('Access-Control-Max-Age', '86400');
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+  next();
+});
 
 app.use(
   helmet({
@@ -44,7 +62,6 @@ const allowedOrigins = [
 const corsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
-
     const normalizedOrigin = origin.replace(/\/$/, '');
     if (allowedOrigins.includes(normalizedOrigin) || normalizedOrigin.endsWith('.vercel.app')) {
       callback(null, true);
@@ -59,7 +76,6 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
-app.options('*', cors(corsOptions));
 
 // ─── Request parsing ──────────────────────────────────────────────────────────
 app.use(express.json({ limit: '2mb' }));
